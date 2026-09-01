@@ -1,0 +1,365 @@
+AD CLICK AGGREGATOR — MOCK INTERVIEW SCRIPT
+============================================
+
+這題的核心是「一次點擊只能算一次」，而且錢跟著這個數字走。
+兩個寫入的先後順序會決定最壞情況是掉資料還是重複計，這是全題最值錢的一分鐘。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：釐清這題要設計的是收集端還是查詢端，還是兩邊】
+--------------------------------------------------------------
+
+INTERVIEWER: Design an ad click aggregator. Users click ads, advertisers want to
+see how their ads are doing. 45 minutes.
+
+CANDIDATE: Two sides then — the part that catches clicks, and the part that
+answers questions about them. Both?
+
+INTERVIEWER: Both.
+
+CANDIDATE: How fresh do the numbers need to be? An advertiser refreshes their
+dashboard — are they looking at this minute, or this morning?
+
+INTERVIEWER: As close to real time as you can make it.
+
+CANDIDATE: And how fine-grained? Can they ask about a specific minute, or is
+daily enough?
+
+INTERVIEWER: Minute granularity.
+
+CANDIDATE: Last one, and it's the one I care about most: if we lose a click, or
+count one twice, how bad is that?
+
+INTERVIEWER: Advertisers pay per click.
+
+CANDIDATE: So both directions cost money. Losing clicks means we undercharge and
+the advertiser's own numbers won't match ours. Counting twice means we overcharge,
+which is worse — that's a billing dispute, and if it's systematic it's a lawsuit.
+
+INTERVIEWER: Correct.
+
+> 第三問把「準確」變成一個有方向的需求：掉資料跟重複計不是對稱的。後面的寫入
+> 順序就是從這句話推出來的。沒問這題的人，到那一步只能憑感覺選。
+
+
+SCENE 1 — Functional requirements
+【現在在做：兩條，因為這題真的只有兩件事】
+----------------------------------------------
+
+CANDIDATE:
+
+  1. A user clicks an ad and lands on the advertiser's site
+  2. An advertiser queries click metrics over a time range, down to one minute
+
+  Out of scope: ad targeting, ad serving, cross-device tracking, fraud detection
+
+INTERVIEWER: Why is serving out of scope?
+
+CANDIDATE: Because deciding which ad to show is a completely different system —
+auctions, targeting, budget pacing. I'm treating it as a service that hands me an
+ad with an identifier attached. What I own starts at the click.
+
+> 兩條 FR 看起來很少，但這題就是這樣。硬湊到四條會把別題的需求拉進來。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：算量，順便發現這題的量其實不大，難的是別的】
+------------------------------------------------------------
+
+CANDIDATE: Scale?
+
+INTERVIEWER: Ten million active ads.
+
+CANDIDATE: Clicks per second is what matters. Let me guess and you correct me —
+peak 10,000 clicks a second?
+
+INTERVIEWER: That's the right order.
+
+CANDIDATE: Then average is roughly a tenth of peak, so about 1,000 a second,
+which is 86 million a day. Call it 100 million clicks a day.
+
+Now — is 10,000 writes a second hard? Not really. That's well within one
+well-configured database. So the difficulty here isn't throughput.
+
+INTERVIEWER: Then what is it?
+
+CANDIDATE: Three other things.
+
+Exactly-once. Every one of those 100 million clicks maps to money, and neither
+losing nor duplicating is acceptable.
+
+The query shape. An advertiser asks "clicks per minute for this ad over the last
+month" — that's 43,000 buckets aggregated from raw rows. Doing that scan at query
+time on a transactional database, for every advertiser opening a dashboard, is
+where it falls over. Not the writes.
+
+And the skew. Ten million ads, but the traffic isn't spread across them. One
+viral ad might be a large share of all clicks, and whatever key I shard on will
+put all of that on one shard.
+
+INTERVIEWER: Good. Those are the three.
+
+> 這一段的價值在於他算完數字之後說「這個量不難」。多數候選人算出一萬就開始講
+> 分片。承認瓶頸不在自己剛算的那個數字上，需要真的想過。
+
+CANDIDATE:
+
+  - Peak 10k clicks/sec, ~100M clicks/day
+  - Advertiser queries return in under a second
+  - No lost clicks, no double counting
+  - Numbers as fresh as possible — target a minute or better
+  - Traffic is heavily skewed toward a few hot ads
+
+
+SCENE 3 — Entities and API
+【現在在做：注意 impressionId 這個欄位，它是後面去重的整個基礎】
+-------------------------------------------------------------------
+
+CANDIDATE:
+
+  Ad             adId, advertiserId, targetUrl
+  Impression     impressionId, adId, userId, shownAt
+  Click          impressionId, adId, userId, clickedAt
+  Metrics        adId, minute, clickCount   (aggregated)
+
+  POST /click    { adId, impressionId, signature }  -> 302 to targetUrl
+  GET  /metrics?adId=&from=&to=&granularity=minute
+
+INTERVIEWER: Why is there an Impression entity? The requirement was about clicks.
+
+CANDIDATE: Because "the same click" needs a definition, and time plus user isn't
+one. The same person can legitimately see and click the same ad twice in an
+afternoon and both should count.
+
+What can't happen twice is one particular showing of the ad being clicked twice.
+So the ad serving system generates an id each time it renders an ad, and that id
+comes back with the click. Two clicks carrying the same impression id are the
+same click.
+
+INTERVIEWER: What stops someone forging one?
+
+CANDIDATE: Nothing, as it stands — the id is in the browser, anyone can send
+whatever they like and inflate a competitor's spend or their own payout. So it
+gets signed: the serving system computes an HMAC over the ad id and impression
+id with a secret only the servers know, and sends the pair to the browser. The
+click processor recomputes it and drops anything that doesn't match.
+
+The browser can replay a valid pair, but it can't manufacture a new one. Replays
+are what dedup handles.
+
+> 面試官問「為什麼多一個 entity」，答案是「因為要先定義什麼叫同一次點擊」。
+> 這跟 Uber 那題「為什麼 Fare 要獨立存」是同一種回答：理由來自產品語意，不是
+> 資料庫正規化。
+
+
+SCENE 4 — The dumb version
+【現在在做：笨版本，然後用三個難點各戳一次】
+-----------------------------------------------
+
+CANDIDATE:
+
+  Browser → Click Processor → Postgres (one row per click)
+                            → 302 redirect
+
+  GET /metrics → SELECT count(*) FROM clicks
+                 WHERE adId = ? AND clickedAt BETWEEN ? AND ?
+                 GROUP BY date_trunc('minute', clickedAt)
+
+Correct, and it fails all three non-functional requirements.
+
+The query scans raw rows every time. A month at minute granularity for a busy ad
+is tens of millions of rows aggregated on demand, per dashboard load.
+
+There's no dedup — a replayed impression id inserts a second row.
+
+And a hot ad concentrates writes and reads on whatever partition holds it.
+
+INTERVIEWER: Fix the query one.
+
+CANDIDATE: Don't aggregate at read time. Aggregate as the clicks arrive and store
+the result, so the dashboard reads pre-computed numbers.
+
+That means clicks go into a stream, a stream processor keeps a running count per
+ad per minute, and it writes those counts into a store built for aggregate
+queries — a columnar OLAP database. The dashboard then reads a few thousand
+pre-summed rows instead of scanning tens of millions.
+
+  Browser → Click Processor → Kafka → Flink (1-minute windows) → OLAP DB
+                            → 302                                   ↑
+                                                          Advertiser dashboard
+
+> 這一步的順序很重要：先說「不要在讀的時候聚合」，再說出 Kafka 跟 Flink。倒過來
+> 講就變成報工具名。
+
+
+SCENE 5 — The write order
+【現在在做：全題最值錢的一分鐘。兩個寫入誰先誰後】
+-----------------------------------------------------
+
+INTERVIEWER: How do you dedup?
+
+CANDIDATE: Keep the impression ids we've already seen, in Redis. A click comes
+in, check if the id is there — if yes, drop it; if no, record it and process the
+click.
+
+INTERVIEWER: Write it as steps.
+
+CANDIDATE: Two writes involved. Adding the id to the cache, and putting the event
+on Kafka. So:
+
+  Option A:  add to cache  →  write to Kafka
+  Option B:  write to Kafka  →  add to cache
+
+Let me think about A. Cache write succeeds, then the process dies before Kafka.
+That click is gone — and it's permanently gone, because if the browser retries,
+the cache now says "seen this one" and we drop it. We deleted the evidence and
+then refused to accept it again.
+
+B: Kafka write succeeds, process dies before the cache write. The click is safely
+in the stream. If the browser retries, the cache doesn't know about it, so we
+write it to Kafka a second time. Now it's counted twice.
+
+So A loses clicks permanently, B counts some twice. Neither is clean, but a
+duplicate is a number I can find and correct later. A missing click leaves no
+trace anywhere.
+
+B. Kafka first, cache second.
+
+INTERVIEWER: How do you correct the duplicates?
+
+CANDIDATE: A second path. Raw events also land in object storage — S3 — and once
+a day a batch job reads that raw log, computes the true counts, and compares them
+against what the stream processor wrote. Where they differ, the batch number
+wins.
+
+The stream gives fresh numbers that are approximately right. The batch gives
+correct numbers a day late. Billing runs off the corrected ones; the dashboard
+shows the fresh ones.
+
+INTERVIEWER: And the advertiser sees the number change?
+
+CANDIDATE: Yes, and they need to be told which is which. A number labelled "last
+24 hours, preliminary" that later settles is honest. The same number shown as
+final and then quietly changing is how you lose an advertiser's trust in every
+number you show them.
+
+> 這一整段是這題的核心，注意它的形狀：不是「用 Redis 去重」，是把兩個順序各推
+> 一次，各自算出最壞情況，然後說明為什麼其中一種壞得比較能救。最後那句「要標
+> 示成暫定值」把技術決定接回產品，那是額外的分。
+
+
+SCENE 6 — The hot ad
+【現在在做：處理傾斜。分片鍵加隨機後綴，聚合前再拿掉】
+---------------------------------------------------------
+
+INTERVIEWER: One ad is 30% of all clicks. What happens?
+
+CANDIDATE: If Kafka is partitioned by ad id, that ad's events all go to one
+partition, and one partition is handled by one consumer. Kinesis caps a shard at
+about 1MB/s or 1,000 records a second, and Kafka partitions have a practical
+ceiling too. That one partition backs up while the others idle.
+
+The fix is to stop that ad from being a single key. Append a random suffix:
+
+  adId              →  adId:0, adId:1, ... adId:9
+
+Now those events spread across ten partitions and ten consumers. The stream
+processor strips the suffix before aggregating, so the counts sum back together
+correctly — addition doesn't care which order the parts arrived in.
+
+INTERVIEWER: Do you do that for every ad?
+
+CANDIDATE: No. Ten million ads times ten suffixes is ten million extra keys for
+ads that get four clicks a day, and it makes the aggregation state ten times
+bigger for no reason.
+
+Only high-volume ads get split, and which ones those are is knowable ahead of
+time — the ad system already knows a campaign's budget and expected volume. Where
+that fails I'd want a feedback path: monitor partition lag, and when one shard
+runs hot, promote that ad into the split set.
+
+> 「只對熱門的做」加上「怎麼知道哪些是熱門的」，這第二句是多數人漏掉的。分片
+> 加後綴很多人會講，講得出啟用條件的少。
+
+
+SCENE 7 — Frontend lens
+【現在在做：儀表板這一端。粒度是前端的責任，那句是重點】
+------------------------------------------------------------
+
+CANDIDATE: The dashboard has decisions the backend can't make.
+
+Granularity is the client's job. A day at minute granularity is 1,440 points,
+which a chart can draw. A year at minute granularity is 525,000 points — the
+request is huge, the parse is slow, and the screen is 1,500 pixels wide so 99% of
+those points can't be seen anyway. So the range picker chooses the granularity:
+a day gets minutes, a month gets hours, a year gets days. The user can override
+it, but the default should never let them ask for something the browser can't
+draw.
+
+State split. The query result is server state, keyed by ad, range, and
+granularity — that triple is the cache key, and it's also the URL. A dashboard
+exists to be sent to a colleague, so the ad, the range and the granularity all
+belong in the address bar. Which point the cursor is hovering and which series
+are toggled off stay local.
+
+Updates: poll, don't stream. The data is aggregated per minute; opening a
+persistent connection to deliver something that changes once a minute is
+machinery for nothing. Poll every 30 seconds, and stop when the tab is
+backgrounded — a dashboard left open on a second monitor overnight shouldn't
+keep asking.
+
+Rendering: past a thousand points, canvas rather than SVG. Every SVG point is a
+DOM node, and panning a chart with 50,000 nodes stutters. And panning or zooming
+should redraw from data already in memory, not refetch.
+
+Accessibility, which for a chart is usually done badly. A table of the same
+numbers underneath — not hidden away as an alternative, present as equal content,
+because it's often easier to read for everyone. A one-line text summary per
+series: total, peak, and when the peak was, so a screen reader user gets the
+shape without walking 1,440 cells. And colour can't be the only difference
+between two lines — line style has to differ too, for the same reason.
+
+INTERVIEWER: The granularity point is one most people miss.
+
+> 「粒度是前端的責任」是這一題的前端亮點：它是一個前端做的、直接改變後端負載
+> 的決定。一年 52 萬個點那個數字讓它變得具體。
+
+
+SCENE 8 — Wrapping up
+【現在在做：三個沒展開的】
+-----------------------------
+
+INTERVIEWER: What did we skip?
+
+CANDIDATE: Three.
+
+Fraud. Everything I built counts clicks accurately, including the fake ones. A
+click farm produces perfectly valid signed impressions. Detecting that is a
+separate system and it would sit between the stream and the billing numbers.
+
+Late events. A phone that clicks while offline and syncs an hour later arrives
+after its minute window closed. Flink handles that with watermarks and allowed
+lateness, but somebody has to decide how late is too late, and that's a business
+answer, not a technical one.
+
+Retention and cost. 100 million events a day in raw form adds up quickly. The
+aggregates are small and can live for years; the raw events probably age out
+after a few months, which means the reconciliation path has a horizon.
+
+INTERVIEWER: Good. That's time.
+
+
+四題對照
+==========
+
+                    FB Live       Uber          Tinder        Ad Click
+------------        ----------    ----------    ----------    ------------
+瓶頸                出口頻寬      寫入次數      多維過濾      查詢時的聚合
+量的大小            很大          很大          很大          其實不大
+真正的難點          扇出          競爭          競態          恰好一次
+一致性              AP + 例外     AP + CP 核心  AP + CP 配對  最終正確，先給暫定值
+搶救錯誤的方式      沒有          鎖過期        partition     每日對帳批次
+
+前三題是「怎麼把量做出來」，這題是「怎麼讓數字對得起錢」。
+量算完發現不大的時候，難點通常在別的地方，那一句要講出來。

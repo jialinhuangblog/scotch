@@ -1,0 +1,273 @@
+BITLY — MOCK INTERVIEW SCRIPT
+==============================
+
+讀寫比 1000:1，而且讀路徑跟寫路徑幾乎不共用元件。
+這題小，面試官會期待每個角落都走到，深度要從「發號怎麼做」跟「302 還是 301」這種
+單點裡挖出來。對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：兩個語意問題，答案會直接改掉發號的方案】
+------------------------------------------------------
+INTERVIEWER: Design a URL shortener like Bitly. 45 minutes.
+
+CANDIDATE: Two questions before anything. First: the same long URL submitted
+twice. Same short code back, or two different codes?
+
+INTERVIEWER: Does it matter?
+
+CANDIDATE: It picks the generation scheme. If the same input must return the
+same code, a hash is the natural fit, it's deterministic. If every submission
+gets a fresh code, a counter works, and nothing about the URL leaks into the
+code. There's also a small privacy angle: with deduplication I can probe
+whether somebody already shortened a given URL.
+
+INTERVIEWER: Fresh code every time.
+
+CANDIDATE: Second: do codes need to be unguessable? If someone enumerates
+codes one by one and visits every link, is that a problem?
+
+INTERVIEWER: Assume links are public anyway.
+
+CANDIDATE: Then predictable codes are fine, which unlocks the simplest correct
+scheme. I'll come back to that.
+
+> 兩個問題都不是背來的開場白：去重語意決定 hash 還是 counter，可猜性決定 counter
+> 到底能不能用。等一下 SCENE 3 選方案的時候，這兩個答案就是理由。
+
+
+SCENE 1 — Functional requirements
+【現在在做：三條規格加範圍切割】
+----------------------------------
+CANDIDATE:
+
+  1. Submit a long URL, get back a short one
+  2. Optionally a custom alias, optionally an expiration date
+  3. Visiting the short URL redirects to the original
+
+  Out of scope: user accounts, click analytics
+
+INTERVIEWER: Custom alias changes anything?
+
+CANDIDATE: It adds a second uniqueness source. Generated codes come out of my
+scheme and I control collisions there. Custom aliases come from users, so the
+only guard is a unique constraint in the database, and the API needs a
+"taken, pick another" error path. Two different mechanisms for the same
+property.
+
+> 自訂別名這一句常被忽略：它把唯一性從「我產的」跟「使用者要的」拆成兩條，後者
+> 只能靠 DB 擋。有講到這個分岔的人，等一下設計 schema 就不會漏 UNIQUE。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：把量算出來，算完發現這題一台資料庫就放得下】
+-----------------------------------------------------------
+CANDIDATE: Scale?
+
+INTERVIEWER: 1 billion shortened URLs total, 100 million DAU.
+
+CANDIDATE: Storage first. A record is a short code, the long URL, and
+timestamps. Say 500 bytes with metadata. A billion of those is 500GB. That
+fits one Postgres instance comfortably, so sharding the database is not a
+requirement here, and saying so out loud matters, because reflexively
+sharding a 500GB dataset is how this design gets overbuilt.
+
+Writes: even 100 million new URLs a day is about a thousand per second, and
+realistic numbers are far lower. Writes are boring.
+
+Reads are the whole game. Say each DAU follows a handful of links: hundreds
+of millions of redirects a day, thousands per second sustained, and a single
+viral link can spike far past that. Read to write is roughly 1000 to 1.
+
+  - Redirect latency under 100ms, it sits in front of every page load
+  - 99.99% availability, that's under an hour of downtime a year
+  - Reads must scale independently of writes
+
+INTERVIEWER: Go on.
+
+> 「500GB 一台就放得下，所以不分片」是這一段的分數所在。面試裡加機器不用錢，
+> 但每加一層就多一種故障。算完量然後說「這裡不需要」，比畫十個框有說服力。
+
+
+SCENE 3 — Generating the code
+【現在在做：三個方案由差到好排，最後一個贏在「不會撞」而不是「比較快」】
+----------------------------------------------------------------------
+CANDIDATE: The center of this problem. Three schemes, in increasing order of
+how much I like them.
+
+Prefix of the URL: take the first 8 characters. Two different URLs share a
+prefix constantly. Broken on arrival, only worth naming to reject it.
+
+Hash: SHA-256 of the URL, base62-encode, keep 8 characters. Base62 because
+letters plus digits survive inside a URL, no slash, no plus. 62^8 is about
+218 trillion, so collisions are rare, but rare is not never, and the
+birthday math says with a billion rows I will see them. So every insert
+needs collision handling: a UNIQUE constraint on the code, catch the
+violation, re-hash with a salt, retry. It works, but the retry loop lives
+on the write path forever.
+
+Counter: a global counter, increment per URL, base62-encode the number. One
+billion in base62 is 6 characters. Unique by construction, no collision
+path, no retry. The objection is that codes are sequential and guessable,
+and we established up front that links are public, so that objection has no
+teeth here.
+
+I'd take the counter.
+
+INTERVIEWER: Where does the counter live? You have many write servers.
+
+CANDIDATE: Redis. INCR is atomic, and a single instance handles far beyond
+our write rate. At a thousand writes a second, one INCR per URL would work
+fine, so batching here is not about throughput. Each write server still
+asks Redis for a range, INCRBY 1000, and hands out numbers from that range
+locally, because that takes Redis off the critical path of every write: a
+server holding a range keeps creating links through a brief Redis blip.
+
+INTERVIEWER: Redis dies. What did you lose?
+
+CANDIDATE: At most the unhanded-out remainder of some batches. The counter
+restarts from a value we persist, or conservatively skips ahead a full
+batch. Gaps in the sequence cost nothing, codes don't need to be dense.
+And the UNIQUE constraint stays on the table as the last line: if a
+failover ever replayed a range, the second insert fails loudly instead of
+silently overwriting someone's link.
+
+> 這段的結構：先擺一個明顯錯的（prefix），再擺一個能用但把重試留在寫路徑上的
+> （hash），最後給 counter，而它能用的前提正是 SCENE 0 問出來的「可以猜」。
+> 批次取號跟「掉一段號碼沒關係」是加分點：面試官問 Redis 掛掉，答案不是防止
+> 遺失，是說清楚遺失的代價是零。
+
+
+SCENE 4 — The redirect
+【現在在做：讀路徑。302 對 301 是這題唯一的 HTTP 考點】
+----------------------------------------------------------
+CANDIDATE: The read path: GET /{code}, look up the long URL, respond with a
+redirect. Which status code is a real decision.
+
+301 is permanent. Browsers cache it aggressively, some effectively forever.
+After the first visit, the browser goes straight to the destination and we
+never see the request again. Sounds like a free CDN, but it means we can
+never change the destination, never expire the link, and if we ever build
+analytics, the numbers are fiction because most clicks never reach us.
+
+302 keeps every request coming through us. We pay the traffic, we keep
+control. For a link shortener whose links can expire, it's 302.
+
+INTERVIEWER: Then every click hits your database.
+
+CANDIDATE: Which is why the cache is not optional. Redis in front, keyed by
+short code, value is the long URL. Read-through: miss goes to Postgres,
+fills the cache. LRU eviction, and the TTL respects the link's expiration so
+an expired link doesn't keep redirecting out of cache.
+
+The lookup itself: short code is the primary key, so it's one B-tree walk.
+Under 100ms is not tight, the cache is there for throughput, not latency.
+A viral link is the case that matters: one code, millions of hits in an
+hour, and they all land on one cache key that answers from memory.
+
+INTERVIEWER: Would you push it to a CDN?
+
+CANDIDATE: Not first. Edge caching the mapping means every PoP holds a copy,
+and expiration becomes a distributed invalidation problem across two hundred
+locations. I'd do it if geography shows up in the latency numbers, with a
+short edge TTL so staleness is bounded, and accept that "expired" can lag by
+that TTL at the edge.
+
+> 301/302 這種小考點，好的講法是把後果講成場景：301 之後「大多數點擊根本到不了
+> 我們這裡」。CDN 那句也一樣，不是「可以加 CDN」，是先說加了之後失效問題長什麼
+> 樣子，再說什麼訊號出現才值得加。
+
+
+SCENE 5 — Two services, and what failure looks like
+【現在在做：讀寫拆開部署，然後把 99.99% 落到具體措施】
+--------------------------------------------------------
+CANDIDATE: The read path and the write path share one table and nothing
+else, so I'd deploy them as two services. Read replicas and horizontal
+read servers scale the redirect side without touching the write side. The
+write side is a single modest service plus the Redis counter.
+
+For 99.99%: Postgres primary with a replica and failover, Redis Sentinel
+for the counter, and note the asymmetry, if the write side is down we can't
+create links, annoying but small. If the read side is down, every short
+link on the internet is broken. Availability spending goes to reads.
+
+INTERVIEWER: Replica lag bite you anywhere?
+
+CANDIDATE: A just-created link read from a lagging replica can 404 for a
+moment. Two mitigations: the creator's confirmation page doesn't need to
+re-resolve the link, it already has both URLs. And fresh codes can be
+written to the cache at creation time, so the first stranger's click hits
+cache, not a replica. That's read-after-write for the one row that's new,
+without making the whole system strongly consistent.
+
+> 「可用性的預算花在讀那邊」是這題的形狀。replica lag 的答案也值得看：不是把
+> 整套改強一致，是找出唯一需要 read-after-write 的那一列（剛建立的），用寫進
+> 快取的方式單獨處理它。
+
+
+SCENE 6 — Frontend lens
+【現在在做：這題前端很小，誠實說小，然後把僅有的幾個決定講對】
+--------------------------------------------------------------
+CANDIDATE: The frontend here is deliberately small, and the redirect leg has
+no frontend at all, a 302 renders nothing. So the surface is the create
+form, the result, and the one error page a human actually sees.
+
+The form: validate the URL client-side before submitting, require a scheme,
+catch obvious garbage. Disable the button while the request is in flight,
+because with a counter scheme, double-submit doesn't return the same code
+twice, it burns two codes for one URL and the user ends up with two links.
+
+The result can't be optimistic. The short code is issued by the server, the
+client has no way to guess it, so this is the same shape as ride matching
+in the Uber problem: show a pending state, then the real code. What the UI
+can do is make the handoff instant, auto-select the code, a copy button,
+and the copy confirmation goes into an aria-live region so a screen reader
+hears "copied" instead of silence.
+
+State split, honestly: server state is my list of created links. Client
+state is the form. URL state, almost nothing, this app's URLs are its
+product, not its navigation.
+
+The page a person actually lands on is the failure page: expired or deleted
+links. That page deserves design, say what happened, don't dump a bare 404,
+because it's the only moment the service is visible to the reading side.
+
+INTERVIEWER: Anything you'd add for safety?
+
+CANDIDATE: An interstitial for untrusted destinations. Shorteners are a
+phishing vector, the code hides the destination by design. A preview page
+that shows the target domain before jumping costs one click and is the
+single biggest trust feature this product can ship.
+
+> 前端這段的誠實比內容多寡值錢：redirect 沒有前端、URL state 幾乎不存在，都
+> 直接說。然後在剩下的小空間裡講對兩個點：counter 方案下重複送出等於一個網址
+> 吃掉兩個號碼，跟 302 藏住目的地所以 preview 頁是信任功能。
+
+
+SCENE 7 — Wrapping up
+【現在在做：三個沒展開的】
+-----------------------------
+CANDIDATE: Three things I'd extend.
+
+Analytics. Click events into a queue, aggregate offline, that's the ad click
+aggregator problem verbatim, and it changes nothing on the redirect hot
+path if the event write is async and best-effort.
+
+Abuse. Malware and phishing URL scanning at creation time, plus takedown,
+which is exactly why we chose 302 and kept control of every hop.
+
+Custom domains. Corporate customers want their own domain on the codes,
+that's a routing layer and a certificate story, not a data model change.
+
+INTERVIEWER: That's time.
+
+
+跟其他題的差別
+================
+
+Rate limiter 是「別人前面的元件」，這題是「小產品」：兩條路徑共用的只有一張表
+跟一個 UNIQUE constraint，所以讀寫可以拆成兩個服務各自擴。
+
+唯一的正確性要求「同一個碼不能發兩次」由兩層保證：counter 的原子性負責不撞，
+DB 的 UNIQUE 負責就算哪天撞了也是大聲失敗。跟 rate limiter 用 Lua 消競態不同，
+這題的競態是用「號碼發出去之前就已經唯一」直接繞掉的。

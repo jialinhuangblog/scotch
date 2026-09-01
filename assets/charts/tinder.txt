@@ -1,0 +1,368 @@
+TINDER — MOCK INTERVIEW SCRIPT
+===============================
+
+技術會、流程不熟的候選人。這題的核心是一個競態，
+而且解法跟 Uber 那題的鎖完全不同。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：搞清楚要設計哪一段。候選人又從技術開口】
+------------------------------------------------------
+
+INTERVIEWER: Design Tinder. People see other people, swipe left or right, and
+when two people both swipe right they match. 45 minutes.
+
+CANDIDATE: Okay, for finding people nearby we'd want Elasticsearch with a geo
+index, and then—
+
+INTERVIEWER: You're doing it again. Ask me something first.
+
+CANDIDATE: Right. So the stack of people someone sees — is that filtered by
+their preferences, or is it just whoever is nearby?
+
+INTERVIEWER: Filtered. Age range, distance, who they're interested in.
+
+CANDIDATE: If I already swiped on someone, can they show up again later?
+
+INTERVIEWER: No. Never.
+
+CANDIDATE: And after a match — chat, photo upload, super likes?
+
+INTERVIEWER: None of that. Just get them to the match.
+
+> 第二問是這一題最值錢的問題。「滑過的人不能再出現」聽起來像小事，但它是後面
+> Bloom filter 存在的唯一理由。如果沒問，Bloom filter 那段就變成沒人要求的功能。
+
+
+SCENE 1 — Functional requirements
+【現在在做：四條規格，二十秒】
+-----------------------------------
+
+CANDIDATE:
+
+  1. A user creates a profile with preferences: age range, max distance, who
+     they're interested in
+  2. A user sees a stack of people matching those preferences
+  3. A user swipes right (yes) or left (no)
+  4. When two people have both swiped right, both get notified
+
+  Out of scope: chat, photo upload, paid features, fake account detection
+
+INTERVIEWER: That's it.
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：算寫入量，然後決定哪一條需要強一致】
+--------------------------------------------------
+
+CANDIDATE: Scale?
+
+INTERVIEWER: Your numbers.
+
+CANDIDATE: Say 20 million daily active users. How many swipes each? People do
+this in bursts on a commute — I'll say 100 a day.
+
+20M × 100 = 2 billion swipes a day. Over 86,400 seconds that's about 23,000
+writes a second on average. Evening peak is maybe 5x, so 100,000 writes a
+second.
+
+INTERVIEWER: Is that a problem?
+
+CANDIDATE: For the write path, it's a lot for a relational database but it's a
+very simple write — one row, no joins, no transaction across tables. That's the
+shape Cassandra is good at. And I never need to query "all swipes by this user"
+in a hurry, so I don't need rich indexes on it.
+
+The read path is the harder one. Building the stack means filtering billions of
+profiles by age, distance, and interest, and it has to come back fast enough
+that the app doesn't feel stuck. I'd say under 300ms.
+
+> 他把「一億次寫入」拆成「什麼形狀的寫入」。同樣的數字，如果每筆要跨表交易，
+> 結論完全不同。這個拆法比報數字有用。
+
+CANDIDATE: One consistency question. If two people swipe right on each other at
+the same instant, do we have to catch it?
+
+INTERVIEWER: What happens if you don't?
+
+CANDIDATE: Then neither of them gets a match, and neither of them knows anything
+went wrong. They just never hear from each other. That's the worst kind of bug —
+silent, and the product's whole reason to exist.
+
+So match detection needs strong consistency. Everything else can be loose: if
+someone's stack is slightly stale, or their new photo takes a minute to show up,
+nobody suffers.
+
+INTERVIEWER: Agreed.
+
+CANDIDATE: Non-functional requirements:
+
+  - 20M DAU, ~2B swipes/day, ~100k writes/sec at peak
+  - Stack loads in under 300ms
+  - Match detection: strongly consistent, no missed matches
+  - Everything else: eventual is fine
+  - A swiped profile never appears again
+
+
+SCENE 3 — Entities and API
+【現在在做：資料模型。Swipe 這張表的形狀等一下會整個改掉】
+---------------------------------------------------------
+
+CANDIDATE:
+
+  User    id, name, birthdate, location, prefs { age_min, age_max, distance,
+          interested_in }
+  Swipe   from_user, to_user, direction (yes | no), created_at
+  Match   user_a, user_b, created_at
+
+  POST /profile     { age_min, age_max, distance, interested_in }
+  GET  /feed?lat=&lng=&limit=20        -> User[]
+  POST /swipe/{userId}   { decision: "yes" | "no" }
+
+INTERVIEWER: Anything you're unsure about there?
+
+CANDIDATE: The Swipe table. Right now it's just a log of who swiped who, and I
+suspect the match check is going to force me to change how it's laid out. I'll
+come back to it.
+
+> 標記一個自己還沒想清楚的地方，然後繼續走。這比硬講一個自己不確定的設計好，
+> 也比停在那裡卡住好。
+
+
+SCENE 4 — The dumb version
+【現在在做：畫最笨的版本，然後自己指出兩個問題】
+--------------------------------------------------
+
+CANDIDATE:
+
+  Client → API Gateway → Profile Service → Postgres     (profile, feed)
+                       → Swipe Service   → Postgres     (swipes, matches)
+
+  Feed:  SELECT * FROM users
+         WHERE age BETWEEN ? AND ?
+           AND lat BETWEEN ? AND ? AND lng BETWEEN ? AND ?
+           AND interested_in = ?
+         LIMIT 20
+
+  Swipe: INSERT INTO swipes ...
+         SELECT * FROM swipes WHERE from_user = ? AND to_user = ?  -- 對方滑過我嗎
+         if found and both yes: INSERT INTO matches ...
+
+INTERVIEWER: Two problems. Name them.
+
+CANDIDATE: The feed query has the same shape problem as any two-dimensional
+range scan — an index on latitude narrows by latitude, then every one of those
+rows still has to be checked for longitude, and now also for age and interest.
+Across billions of profiles that's a scan, on every swipe, because the stack
+runs out every twenty cards.
+
+The second one is the swipe path, and it's worse. Look at the order: insert,
+then read, then maybe insert. Three separate operations. Two people swiping at
+the same moment both do their insert, then both do their read — and both reads
+happen before the other person's insert is visible. Both conclude "they haven't
+swiped me," and the match never exists.
+
+INTERVIEWER: Good. Fix the second one.
+
+> 順序：先讓他把兩個問題都講出來，面試官再指定先修哪一個。這比候選人自己決定
+> 順序好，因為面試官通常想聽核心那一題。
+
+
+SCENE 5 — The race
+【現在在做：這題的核心。注意解法跟 Uber 的鎖不一樣】
+------------------------------------------------------
+
+CANDIDATE: The first instinct is a lock — lock the pair, do the check, release.
+That's what I'd reach for.
+
+But I don't think it's right here. A lock costs a round trip on every single
+swipe, and there are 100,000 a second. And the thing I'm protecting is tiny: two
+rows that are known in advance.
+
+INTERVIEWER: Known in advance how?
+
+CANDIDATE: When A swipes B, the only other write that can conflict is B swiping
+A. Nobody else is involved. So instead of locking at runtime, I can decide ahead
+of time that those two rows live in the same place, and then use a transaction
+that only touches that one place.
+
+In Cassandra that means the partition key is the pair, not the user. Sort the
+two ids so both directions produce the same key:
+
+  partition key = min(A,B) + ":" + max(A,B)
+
+  CREATE TABLE swipes (
+      user_pair   text,      -- partition key: "123:456"
+      from_user   uuid,      -- clustering key
+      to_user     uuid,
+      direction   text,
+      created_at  timestamp,
+      PRIMARY KEY ((user_pair), from_user, to_user)
+  );
+
+Now "write my swipe and check theirs" is one operation inside one partition, and
+Cassandra can make that atomic. The race disappears because the two writes were
+never in different places to begin with.
+
+INTERVIEWER: How is this different from the lock you'd use for, say, assigning a
+driver to a rider?
+
+CANDIDATE: Because there I don't know who's competing. Any of a hundred riders
+might want that driver, and I only find out at runtime, so I need a runtime
+mechanism — the lock.
+
+Here the competition is always exactly one known pair. I can design the storage
+so they can't collide, and then I don't need to coordinate at all.
+
+> 這一段答完就贏了。「事先知道誰會競爭 → 用資料佈局；事後才知道 → 用鎖」是可以
+> 帶去別的題目的判準，而且他是被問到才講出來的。
+
+INTERVIEWER: What's the cost?
+
+CANDIDATE: Hot partitions. Someone who gets swiped by a hundred thousand people
+has a hundred thousand pair-partitions, which is fine — but a very active
+swiper's own rows are spread across just as many partitions, so "show me my
+swipe history" becomes a scatter query. I've optimised for the write and the
+match check, and made history reads worse. That's the trade I'd accept, because
+history is a rare screen and the match check is every swipe.
+
+Alternative: keep recent swipes in Redis and do the atomic check with a Lua
+script, flushing to Cassandra for durability. Faster, but now I have two stores
+and a window where they disagree.
+
+
+SCENE 6 — The feed
+【現在在做：讀路徑。一次給一層，等面試官問「夠嗎」】
+-------------------------------------------------------
+
+CANDIDATE: Back to the stack. The filter is geo plus age plus interest, so it's
+a multi-field search, not just a geo lookup. That's what a search index is for —
+Elasticsearch, with the profiles denormalized into it.
+
+INTERVIEWER: How does it stay in sync with the user database?
+
+CANDIDATE: Change data capture. The user table is the source of truth, changes
+stream out of it and update the index. It lags by seconds, which is fine — a
+profile edit showing up a few seconds late costs nothing.
+
+INTERVIEWER: Is a query per stack fast enough?
+
+CANDIDATE: Probably, but I'd rather not find out during peak. Most people open
+the app and swipe through a stack immediately, so I can precompute: a background
+job builds a stack for active users and caches it. Opening the app is then a
+cache read.
+
+INTERVIEWER: What breaks?
+
+CANDIDATE: Staleness. Someone changes their distance setting, or travels, and
+their cached stack is for the old criteria. So a short TTL, under an hour, plus
+an explicit invalidation when preferences or location change.
+
+And heavy users exhaust the cached stack. When they're down to the last few
+cards, the client asks for more and that request goes live to Elasticsearch. So
+the cache covers the common opening, and the index covers the tail.
+
+> 三層：搜尋索引 → 預先算好放快取 → 快取用完打索引。每一層都是被追問之後才給的。
+
+
+SCENE 7 — Never show the same person twice
+【現在在做：兌現 SCENE 0 問到的那條需求】
+--------------------------------------------
+
+INTERVIEWER: You said a swiped profile never comes back. How?
+
+CANDIDATE: The naive version is to check the swipe table while building the
+stack. Someone who's been swiping for three years has hundreds of thousands of
+rows, and with the pair-partition layout that check is a scatter query. Too slow
+to do while assembling twenty cards.
+
+Client-side helps a bit: the app keeps the last few hundred swipes locally and
+filters them out. But it doesn't cover the long tail.
+
+So for heavy users I'd keep a Bloom filter per user, cached. Ask it "have I
+swiped this person," and it answers with one property that matters here: it
+never says no when the answer is yes. It can occasionally say yes when the
+answer is no.
+
+INTERVIEWER: What does that mean for the product?
+
+CANDIDATE: A false positive means someone who I've never seen gets silently
+skipped. They just never appear in my stack. That's invisible to both people and
+costs nothing — there are millions of other profiles. A false negative would be
+showing someone I already rejected, which users notice and complain about. The
+error the filter can make is the harmless one, which is why it fits.
+
+> 這個回答的形狀值得記：不是解釋 Bloom filter 怎麼運作，是說明它會犯的錯剛好是
+> 這個產品付得起的錯。面試官要聽的是後者。
+
+
+SCENE 8 — Frontend lens
+【現在在做：主動講前端。手勢那條是這題獨有的】
+------------------------------------------------
+
+CANDIDATE: A few minutes on the client, because this UI has decisions the
+backend can't make for it.
+
+First, prefetching. The stack is twenty cards but the photos are the payload. I'd
+load the next two or three images ahead of the current card — swipe to a white
+box and the whole feel is gone. And I'd refill the stack when three cards remain,
+not when it empties, so the fetch happens while the user is still busy.
+
+Second, what happens when a swipe fails. The card is already gone from the screen
+— the animation ran, the user moved on. Putting it back would be worse than
+losing the swipe: they already made the decision and seeing that face return
+reads as a bug. So the POST retries quietly in the background and the card stays
+gone. That's a deliberate choice to accept a lost write, and I'd write it down
+rather than let it be an accident.
+
+Third, accessibility, and this one is specific to a swipe interface. A drag
+gesture doesn't exist for someone using a screen reader or a switch device.
+Like and pass have to be real buttons — not a fallback tucked in a menu, the
+primary control, with the gesture as the shortcut for people who can use it.
+And when the card changes, the new person's name and details need to be
+announced, otherwise the screen reader user has no idea the deck moved.
+
+Fourth, DOM size. Only the top three cards render; the rest of the stack is data,
+not elements. A hundred cards of images in the tree makes every animation stutter.
+
+INTERVIEWER: The button-first framing is the right way round.
+
+> 第三點是這一整份腳本的差異化。多數候選人會說「加上按鈕當備援」，說成「按鈕是
+> 主要操作，手勢是捷徑」是另一個層級。
+
+
+SCENE 9 — Wrapping up
+【現在在做：列出沒講的，說明為什麼是這三個】
+-----------------------------------------------
+
+INTERVIEWER: What's missing?
+
+CANDIDATE: Three.
+
+Ranking. I've been treating the stack as "anyone who matches the filter," but
+who appears first is the actual product. That's a scoring system on top of the
+same retrieval.
+
+Fake profiles and abuse. It changes the write path — a swipe from a bot should
+never reach the match logic — and it's a whole detection system.
+
+And the unmatch and block path. Both of those have to remove people from stacks
+retroactively, which means the Bloom filter and the cached stacks both need an
+eviction story I haven't designed.
+
+INTERVIEWER: Good. Time.
+
+
+三題對照
+==========
+
+                    FB Live Comments      Uber                  Tinder
+--------------      ------------------    ------------------    ------------------
+瓶頸                出口頻寬              寫入次數              讀路徑的多維過濾
+競爭的對象          沒有競爭              事後才知道是誰        事先就知道是哪兩個
+處理方式            不需要                runtime 上鎖          partition 佈局
+一致性              AP，一個小例外        AP，核心那條 CP       AP，配對那條 CP
+規模的解法          取樣 + CDN            地理分片 + 佇列       預先算 + 搜尋索引
+
+「事先知道誰會競爭就用資料佈局，事後才知道才用鎖」是可以帶到別題的判準。

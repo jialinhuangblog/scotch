@@ -1,0 +1,312 @@
+TICKETMASTER — MOCK INTERVIEW SCRIPT
+=====================================
+
+同一個候選人。這次的錯：把「占住座位」直接做成資料庫長交易，
+被面試官用「使用者填表單十分鐘」一句話問倒。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：先問清楚賣的是什麼。演唱會的座位跟音樂節的門票是兩題】
+----------------------------------------------------------------
+
+INTERVIEWER: Design Ticketmaster. 45 minutes.
+
+CANDIDATE: First question — are we selling assigned seats or general
+admission? Seat maps make this a different problem: every seat is its own
+piece of inventory that two people can fight over.
+
+INTERVIEWER: Assigned seats. Users pick them off a map.
+
+CANDIDATE: Then the core of this question is that fight. Second question —
+do I own payment, or do I call something like Stripe and wait for its answer?
+
+INTERVIEWER: Call Stripe. You don't build payment.
+
+CANDIDATE: Good, then payment is a slow external call in the middle of my
+critical path, which matters later. Viewing events and search are in scope?
+
+INTERVIEWER: Yes. Browse, search, book.
+
+> 兩個問題就把題目釘住了：座位是會被搶的庫存、付款是插在關鍵路徑中間的
+> 慢呼叫。後面每個設計都從這兩句長出來。
+
+
+SCENE 1 — Functional requirements
+【現在在做：三條規格。第三條寫的是保證，不是功能】
+------------------------------------------------
+
+CANDIDATE:
+
+  1. View an event: details, venue, seat map with availability
+  2. Search events by keyword, date, location
+  3. Book seats — and the same seat is never sold twice
+
+  Out of scope: payment internals, dynamic pricing, resale
+
+INTERVIEWER: Why phrase the third one that way?
+
+CANDIDATE: Because "book seats" is easy and "never sold twice" is the actual
+requirement. If I write it down as a guarantee now, every later decision gets
+tested against it.
+
+> 把不變量寫進 FR 是好習慣。後面選鎖、選交易、選 fail 行為，全部拿這條
+> 來對答案。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：算數字。這題的形狀是讀多寫少，而且少得極端】
+------------------------------------------------
+
+CANDIDATE: Scale?
+
+INTERVIEWER: A popular on-sale can have 10 million people arriving at once.
+
+CANDIDATE: And a venue has, say, 50 thousand seats. So the ratio is brutal:
+10 million people show up, at most 50 thousand bookings can succeed. Reads
+outnumber successful writes by a factor of hundreds. Everyone is refreshing
+the seat map; almost nobody actually gets to write.
+
+So:
+
+  - Booking: strongly consistent. The guarantee from FR 3.
+  - Viewing and search: eventually consistent is fine, cache hard.
+  - Search under 500ms.
+  - The on-sale spike is the design driver, not the average day.
+
+INTERVIEWER: Agreed.
+
+> 讀寫比先算出來，後面「看的那條路全上快取、寫的那條路保交易」就不是
+> 兩個孤立決定，是同一個數字的兩面。
+
+
+SCENE 3 — Entities and API
+【現在在做：資料模型。整題後面都在搶 Ticket 的 status 欄位】
+--------------------------------------------------------
+
+CANDIDATE: Entities: Event, Venue, Performer, Ticket, Booking. The one that
+matters is Ticket — one row per seat per event, with a status: available,
+reserved, booked. Everything later is about who gets to flip that field.
+
+API:
+
+  GET  /events/:eventId                     -> Event + Venue + Ticket[]
+  GET  /events/search?keyword=&start=&end=  -> Event[]
+  POST /bookings/:eventId  { ticketIds, payment }  -> bookingId
+
+INTERVIEWER: Why is reserved a status at all? Either it's sold or it isn't.
+
+CANDIDATE: Because checkout isn't instant. The user picks a seat, then types
+a credit card number for ten minutes. If the seat stays "available" during
+that, someone else buys it and my user hits an error after filling the form.
+"Reserved" is the seat being held while a human is slow.
+
+INTERVIEWER: Hold that thought.
+
+> 面試官在這裡埋了下一幕的雷。reserved 這個狀態存在哪裡、誰負責清掉它，
+> 就是這題的核心。
+
+
+SCENE 4 — The dumbest version
+【現在在做：先讓雙重販售發生一次，看清楚它長什麼樣】
+--------------------------------------------------
+
+CANDIDATE: Dumbest version: client → API → Postgres. Booking is an UPDATE:
+
+  UPDATE tickets SET status = 'booked'
+  WHERE id = ? AND status = 'available'
+
+Two people click the same seat at the same time. Both requests read
+"available", both UPDATE. Postgres row-locks the write, so only one UPDATE
+actually matches the WHERE clause — the second sees zero rows changed and
+fails. So actually, the database already prevents the double sell.
+
+INTERVIEWER: So we're done?
+
+CANDIDATE: For the final flip, yes. But the ten-minute form is still broken.
+The loser fails at the very end, after typing everything. And I haven't
+reserved anything during checkout.
+
+My first instinct is to open a transaction when the user picks the seat and
+hold the row lock until payment finishes.
+
+INTERVIEWER: The user takes ten minutes to type their card number.
+
+CANDIDATE: ...and I'm holding a database connection and a row lock for ten
+human minutes. Fifty thousand seats going on sale means tens of thousands of
+open transactions doing nothing. Connections run out. And if the app server
+holding one dies, the lock lives until some timeout I now have to tune.
+
+Ignore that. Long transactions with a human inside never work.
+
+> 這是本場的招牌錯誤，也是走查最容易對不上的地方：交易是給機器速度用的，
+> 中間夾一個打字的人就全錯。候選人自己講出來自己收回，比被糾正好看。
+
+
+SCENE 5 — The lock
+【現在在做：reserved 搬出資料庫，放進帶 TTL 的 Redis】
+----------------------------------------------------
+
+CANDIDATE: What "reserved" needs is an expiring hold. That's not a database
+transaction, that's a lock with a TTL. Redis:
+
+  SET lock:ticket:{id} {userId} NX EX 600
+
+One atomic command. NX means only the first request wins; EX 600 means the
+hold evaporates after ten minutes on its own. The user who abandons the form
+does nothing — the seat comes back by itself.
+
+The flow: pick seat → SET NX wins → fill form → pay via Stripe → one short
+Postgres transaction flips available to booked → delete the lock.
+
+INTERVIEWER: Redis dies. What happens to my guarantee?
+
+CANDIDATE: The holds vanish, which hurts the experience — two people can now
+fill the form for the same seat. But the guarantee survives, because the
+final flip is still that conditional UPDATE in Postgres. The loser pays and
+then gets refunded, which is bad UX on the worst day, but it's never two
+tickets for one seat. The lock is for experience; the database is for truth.
+
+INTERVIEWER: Why TTL 600 and not 60?
+
+CANDIDATE: It's however long a person needs to type a credit card number.
+It's a product number, not a technical one — I'd ask the PM and expect
+something between five and fifteen minutes.
+
+> 「鎖管體驗，資料庫管真相」一句話收住兩層。Redis 掛掉推演到「最壞是退款,
+> 不是超賣」，就是 FR 3 那條保證在驗收。
+
+
+SCENE 6 — The on-sale spike
+【現在在做：一千萬人同時到場。放進來再處理是來不及的，門口就要排】
+--------------------------------------------------------------
+
+INTERVIEWER: On-sale morning. 10 million people hit the event page in the
+first minute.
+
+CANDIDATE: No backend survives 10 million people all doing real work. The
+trick is that they don't need to do real work — 50 thousand can buy, the
+rest are going to fail eventually anyway. So make them wait in an explicit
+queue instead of hammering the system to discover it's full.
+
+Virtual waiting room: arriving users go into a Redis sorted set keyed by
+arrival time. An SSE connection tells each one their position. A dequeue
+job admits users at the rate the booking path can absorb, dropping them
+into an "admitted" set with a TTL; the booking service checks that set
+before accepting anything.
+
+INTERVIEWER: Users hate queues.
+
+CANDIDATE: They hate spinners more. A number that goes down is the honest
+version — you're 40,000th in line, and that's true whether I show it or not.
+Showing it also kills the refresh instinct that doubles the load.
+
+> 等候室的推銷詞不是技術的，是誠實：反正就是有一百萬人在你前面，顯示
+> 出來至少大家不會一直按重新整理。
+
+
+SCENE 7 — Reads and search
+【現在在做：把讀那條路清出去，別讓它跟訂票搶資源】
+------------------------------------------------
+
+CANDIDATE: Everything on the view path is static-ish: event details, venue,
+performer. Redis read-through cache, long TTL, invalidate on the rare edit.
+The seat map is the exception — it changes every second during on-sale. For
+that: one snapshot on page load, then SSE pushing deltas, "these seats just
+got locked". Re-fetching the whole map per change is what kills you.
+
+Search: Postgres full-text works until it doesn't. Elasticsearch fed by CDC
+from Postgres — typo tolerance, and search load stops touching the
+transactional database entirely. The index is seconds behind, which is fine;
+ticket availability isn't answered by search anyway.
+
+INTERVIEWER: Why is stale search acceptable but a stale seat map isn't?
+
+CANDIDATE: Search answers "which events exist", and events don't flicker.
+The seat map answers "can I have this seat", and that answer changes under
+your cursor. Different questions, different freshness budgets.
+
+> 兩個讀路徑拿到不同的新鮮度預算，而且說得出為什麼。這比「全部上快取」
+> 或「全部走 DB」都值錢。
+
+
+SCENE 8 — Frontend lens
+【現在在做：前端這半場自己開，座位表是這題前端的心臟】
+----------------------------------------------------
+
+CANDIDATE: Let me walk the frontend, because the seat map is half this
+product.
+
+Components: <TicketApp> → <SeatMap>, <QueueGate>, <CheckoutForm>.
+
+State split. Server state: the seat map snapshot plus the SSE delta stream,
+and the booking status. Client state: which seats I've selected, form
+progress. URL state: eventId — a shared link opens the event page. The queue
+position is deliberately not in the URL: your place in line is your session,
+not something a copied link should carry.
+
+Rendering the map: a big venue is tens of thousands of seats. That's not
+tens of thousands of DOM nodes — canvas, or heavy virtualization, one
+delegated click handler.
+
+The optimistic boundary: when you tap a seat, painting it "being held" is
+fine. Painting it "yours" is not — the lock is granted by the server, and
+guessing wrong means showing someone a seat they don't have. Optimistic for
+intent, server-confirmed for possession.
+
+The countdown: the ten-minute TTL is running on the server. Show it, but
+sync it — client clocks lie. And announce it with aria-live="polite" once a
+minute, not every second; a screen reader user typing a card number doesn't
+need sixty interruptions.
+
+a11y on the map itself: a seat map is a picture. Keyboard users need
+arrow-key navigation between seats, and each seat announces itself as text:
+row, number, price, availability. This is exactly the work component
+libraries don't do for you.
+
+INTERVIEWER: What does the queue page do to your frontend?
+
+CANDIDATE: Almost nothing, which is the point. It's a static page holding
+one SSE connection that updates a single number. No polling, no reload. The
+worst thing I could do is make a million waiting browsers each poll an API.
+
+> 前端段有骨架：元件樹、三種 state、樂觀更新的邊界、a11y、效能。座位表
+> 用 canvas 跟鍵盤導航兩句就把「做過大前端」的訊號放出去了。
+
+
+SCENE 9 — Wrapping up
+【現在在做：主動收尾，把沒講的三塊點名】
+--------------------------------------
+
+CANDIDATE: Three things I skipped, on purpose. Refunds and the state machine
+around payment failure — Stripe webhooks arriving late or twice, that's its
+own diagram. Dynamic pricing. And fraud — bots are half of a real on-sale,
+and I've treated everyone as human.
+
+INTERVIEWER: Good. That's time.
+
+
+跟 Uber 那題的對照
+==================
+
+Uber                                Ticketmaster
+--------------------------------    --------------------------------
+鎖住的是司機（TTL 10 秒）           鎖住的是座位（TTL 10 分鐘）
+TTL 是機器的回應時間                TTL 是人打信用卡的時間
+搶完就派，沒有表單                  搶完還要等人填十分鐘表單
+尖峰用地理分片分散                  尖峰用等候室排成隊
+強一致：一司機一單                  強一致：一位一票
+
+同一把 Redis 鎖，TTL 差六十倍，因為等的對象一個是機器一個是人。
+鎖的形狀跟著「誰在鎖的另一頭」走。
+
+
+規則（Uber 那份四條照舊，這次多一條）
+====================================
+
+1. 一次只給一層，等他問「這樣夠嗎」再給下一層。
+2. 講錯就當場改口，「想一下，其實不對」。
+3. 算出荒謬的數字先記著，走到那一步再拿出來解。
+4. 被問到「為什麼要這個元件」的時候，答案應該是前一個問題，不是它的功能。
+5. 保證跟體驗分開修。體驗壞掉可以退款道歉，保證壞掉是新聞事件。
+   先確認最壞情況傷到的是哪一種，再決定要多複雜的解法。

@@ -1,0 +1,430 @@
+UBER — MOCK INTERVIEW SCRIPT
+=============================
+
+同一個候選人，技術會、流程不熟。這次犯的錯跟上一題不一樣。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：釐清這題到底要設計哪一段。候選人一開口就跳技術】
+----------------------------------------------------------------
+
+INTERVIEWER: Let's design Uber. A rider opens the app, sees a price, requests a
+ride, and a driver comes and picks them up. 45 minutes.
+
+CANDIDATE: Okay, so for finding nearby drivers we'd want a geospatial index,
+probably Redis with geohashing, and then—
+
+INTERVIEWER: You're three steps ahead. What are we even building?
+
+CANDIDATE: Fair. Let me ask some things first.
+
+Is this two separate apps? A rider app and a driver app?
+
+INTERVIEWER: Yes, two apps, same backend.
+
+CANDIDATE: Does the rider see a price before they commit, or after the ride?
+
+INTERVIEWER: Before. They see an estimate and then decide.
+
+CANDIDATE: And when a driver gets a request, can they decline it?
+
+INTERVIEWER: They can.
+
+CANDIDATE: Okay. Do I need to design payments, ratings, or the actual navigation?
+
+INTERVIEWER: No. Assume a mapping provider gives you distance and ETA, and
+payments are somebody else's problem.
+
+> 這四問各拿到一個會改設計的答案。兩個 app 表示有兩條完全不同的資料流。先看價格表示估
+> 價是獨立的一步，不是叫車的附屬。司機可以拒絕，表示媒合是一個會失敗、要重
+> 試的流程，不是一次配對就結束。最後一問把導航跟金流關在門外。
+
+
+SCENE 1 — Functional requirements
+【現在在做：把上面問到的答案寫成三到四條規格，請面試官確認】
+---------------------------------------------------------------
+
+CANDIDATE: So:
+
+  1. A rider enters pickup and destination and gets a fare estimate
+  2. A rider requests a ride at that estimate
+  3. The system matches them with a nearby available driver
+  4. The driver accepts or declines, then navigates to pickup and drop-off
+
+  Out of scope: payments, ratings, driver onboarding, turn-by-turn navigation
+
+INTERVIEWER: That's the right set.
+
+> 四條，二十秒，每一條都是使用者做得到什麼。跟上一題一樣，「不做」那行是在
+> 跟面試官確認邊界。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：問規模。這一題的關鍵數字跟上一題完全不同，候選人差點算錯單位】
+------------------------------------------------------------------------
+
+CANDIDATE: How big is this?
+
+INTERVIEWER: Global. Give me your own numbers.
+
+CANDIDATE: Let's say 10 million active drivers worldwide. Each one has to report
+its location so we can find them. How often... if a driver is moving at 60 km/h,
+in 5 seconds they've moved about 80 meters. That feels like the right resolution
+for matching. So every 5 seconds.
+
+10 million drivers ÷ 5 seconds = 2 million location updates per second.
+
+INTERVIEWER: Is that a lot?
+
+CANDIDATE: Let me check what kind of "a lot." Each update is maybe 50 bytes of
+actual data — driver id, lat, lng, timestamp. Two million of those is 100 MB a
+second of raw payload. That's... honestly not much. A handful of machines.
+
+But the write count is the problem, not the bytes. Two million writes a second
+into a database, and every one of them is an UPDATE to the same row — the
+driver's current position. Postgres does maybe tens of thousands of writes a
+second on good hardware. We're asking for a hundred times that, and every write
+generates WAL and touches an index.
+
+INTERVIEWER: So?
+
+CANDIDATE: So driver location doesn't go in a normal database. It goes in memory.
+
+> 這一段是全場第一個分數點。他沒有說「兩百萬很多」就停，他問了「哪一種多」，
+> 然後發現瓶頸在寫入次數不在頻寬。上一題 Facebook Live 的瓶頸是出口頻寬，這
+> 題是 IOPS，兩個完全不同的東西。能講出差別，比背「用 Redis」有用得多。
+
+CANDIDATE: Second question. When a ride request goes out to a driver, can two
+different riders get matched with the same driver?
+
+INTERVIEWER: What do you think?
+
+CANDIDATE: Absolutely not. That's a real-world failure — two people standing on
+two different corners both told the same car is coming. So matching needs strong
+consistency.
+
+Which is interesting, because most of this system doesn't. If the map shows a
+driver 50 meters from where they actually are, nobody cares. Location is
+eventually consistent and that's fine. But the assignment itself has to be
+exactly once.
+
+INTERVIEWER: Good.
+
+> 這句「大部分不需要，但這一條需要」就是上一題那個模式再用一次。同一個系統
+> 裡不同功能挑不同的一致性。差別在上一題的例外很小（作者看自己的留言），這
+> 題的例外是整個系統的核心。
+
+CANDIDATE: Third, latency. How long can a rider wait to get matched?
+
+INTERVIEWER: You tell me what's acceptable.
+
+CANDIDATE: Under a minute, and if we can't match in that time we should tell them
+instead of leaving them staring at a spinner. So: match within 60 seconds or
+fail visibly.
+
+CANDIDATE: Non-functional requirements:
+
+  - 10M drivers, ~2M location updates/sec
+  - Matching within 60 seconds, or fail explicitly
+  - Strong consistency on driver assignment — never double-book a driver
+  - Location itself can be eventually consistent
+  - Peak: 100k concurrent ride requests in one city during a surge
+
+INTERVIEWER: Go on.
+
+
+SCENE 3 — Entities and API
+【現在在做：資料模型跟端點。注意 Fare 為什麼要單獨存起來】
+------------------------------------------------------------
+
+CANDIDATE: Entities:
+
+  Rider     id, name, payment_method_id
+  Driver    id, name, vehicle, status (offline | available | on_trip)
+  Location  driver_id, lat, lng, updated_at
+  Fare      id, rider_id, pickup, destination, price, eta, expires_at
+  Ride      id, rider_id, driver_id, fare_id, status, timestamps
+
+INTERVIEWER: Why is Fare its own entity? Why not just compute the price when the
+ride is created?
+
+CANDIDATE: Because the rider saw a number and agreed to it. If I recompute at
+request time and traffic changed in those 30 seconds, they get charged something
+different from what they tapped on. So the estimate gets persisted with an
+expiry, and the ride references it.
+
+INTERVIEWER: Good.
+
+> 這個回答值錢，因為它不是技術理由，是產品理由。面試官問「為什麼多一張表」，
+> 答「因為使用者看到的數字必須算數」比答「為了正規化」好一個等級。
+
+CANDIDATE: API:
+
+  POST  /fare                  { pickup, destination } -> Fare
+  POST  /rides                 { fareId } -> Ride
+  POST  /drivers/location      { lat, lng }
+  PATCH /rides/:rideId         { action: "accept" | "decline" }
+
+The rider app uses the first two. The driver app uses the last two.
+
+> 最後那句一秒鐘，但它讓面試官知道你腦子裡有兩個 client，不是一個。
+
+
+SCENE 4 — The dumbest version
+【現在在做：先畫一個笨但完整的版本，然後自己指出它哪裡壞掉】
+--------------------------------------------------------------
+
+CANDIDATE: Simplest thing that satisfies all four requirements:
+
+  Rider app  → API Gateway → Ride Service → Postgres
+  Driver app → API Gateway → Ride Service → Postgres (UPDATE locations SET ...)
+
+  Matching: SELECT * FROM locations
+            WHERE lat BETWEEN ... AND lng BETWEEN ...
+            AND status = 'available'
+
+INTERVIEWER: What breaks?
+
+CANDIDATE: Two things, and they're different kinds of broken.
+
+The write side we already covered — two million UPDATEs a second is a hundred
+times what the database can do.
+
+The read side is worse in a subtle way. That BETWEEN query on lat and lng can't
+use a normal B-tree index properly. An index on lat can narrow by latitude, but
+then it still has to scan every one of those rows to filter longitude. In a
+dense city that's most of your drivers, on every single ride request.
+
+INTERVIEWER: Why can't a B-tree do it?
+
+CANDIDATE: Because a B-tree is one-dimensional — it sorts on one axis. Two
+coordinates are two axes and you can't order them into one sequence without
+losing the neighbor relationship. Two points close on the map can end up far
+apart in the index.
+
+> 這是這一題的技術核心，而且他是被問到才展開的。如果第一句就說「用 geohash」，
+> 面試官沒辦法判斷他懂不懂為什麼需要它。
+
+
+SCENE 5 — Geospatial index
+【現在在做：解讀路徑。候選人這次沒有一次倒三層，一次給一個】
+--------------------------------------------------------------
+
+CANDIDATE: So I need an index that keeps nearby points nearby. Geohashing does
+that: it interleaves the bits of latitude and longitude into a single number, so
+points that are close on the map share a long prefix.
+
+Redis has this built in. GEOADD to write a driver's position, GEOSEARCH to ask
+"give me everyone within 3 km of this point." It's in memory, so two million
+writes a second is fine.
+
+INTERVIEWER: What happens when a driver goes offline without telling you? Phone
+dies, app crashes.
+
+CANDIDATE: Their last position sits there forever and we keep matching riders to
+a car that isn't there. So every location entry gets a TTL — say 30 seconds. A
+driver who's actually online refreshes it every 5 seconds and never expires. One
+who vanishes falls out of the index by itself.
+
+> 這一問答是設計題的典型節奏：面試官不問「還有什麼」，問一個具體的壞掉情境，
+> 看你有沒有想過。TTL 這個答案的好處是它不需要任何「偵測掉線」的程式碼。
+
+INTERVIEWER: Two million writes a second — is all of that necessary?
+
+CANDIDATE: No, and that's a good place to save. The client can decide how often
+to report. A driver parked at home doesn't need to ping every 5 seconds — once a
+minute is plenty. A driver doing 100 km/h on the highway with a pending request
+nearby should ping more often.
+
+So the interval adapts to speed, and to whether the driver is a candidate for
+anything right now. That's a client-side change that cuts backend load
+significantly, and it costs nothing.
+
+> 「客戶端改一行，後端省掉一半」這種答案在面試裡很吃香，因為多數候選人只會
+> 想在伺服器端加機器。
+
+
+SCENE 6 — The lock
+【現在在做：這題的心臟。強一致要求怎麼落到實作上】
+----------------------------------------------------
+
+INTERVIEWER: Walk me through matching. Rider requests, what happens?
+
+CANDIDATE: Matching service takes the request, does a GEOSEARCH for available
+drivers nearby, picks the best one, and sends them the request.
+
+INTERVIEWER: You have twenty matching service instances running. Two riders
+request at the same time and both searches return the same driver.
+
+CANDIDATE: Right, that's the double-booking case. Both instances see the driver
+as available because neither has written anything yet.
+
+So the driver has to be locked before the request goes out. Whoever acquires the
+lock is the only one allowed to offer that driver.
+
+INTERVIEWER: Where does that lock live?
+
+CANDIDATE: Not in the application — twenty separate processes can't coordinate
+through their own memory. It has to be somewhere all of them can see. Redis, with
+SET driver:123 lock_value NX EX 10 — set only if it doesn't exist, expiring in
+10 seconds.
+
+INTERVIEWER: Why the expiry?
+
+CANDIDATE: Because the instance holding the lock can die. If the lock has no
+expiry and the process crashes between locking and releasing, that driver is
+unavailable forever and nobody notices. The TTL means the worst case is the
+driver sits out for 10 seconds.
+
+Ten also happens to be about how long we'd give a driver to respond anyway, so
+the two line up.
+
+> 這一整段是這題最該練熟的。三個層次：為什麼要鎖（競態）、鎖放哪（跨行程所
+> 以要外部）、為什麼要過期（持鎖者會死）。少講任何一層，面試官都會追。
+
+INTERVIEWER: The driver declines. Then what?
+
+CANDIDATE: Release the lock, go back to the candidate list, offer it to the next
+driver. Same thing if they just don't respond and the 10 seconds run out.
+
+INTERVIEWER: And if the matching service crashes in the middle of that loop?
+
+CANDIDATE: Then the rider is waiting and nobody is working on their request. The
+loop state lived in that process's memory and it's gone.
+
+Which means the state can't live in memory. I'd use a durable workflow engine —
+Temporal, or Step Functions. The workflow is "try driver 1, wait 10s, try driver
+2, wait 10s..." and its state is persisted at every step. If the worker dies,
+another one picks the workflow up where it stopped.
+
+> 面試官連續三問把他推到需要 workflow engine，而不是他一開始就搬出來。這個順
+> 序讓「為什麼需要它」變得明顯。如果一開始就講 Temporal，聽起來像在報菜名。
+
+
+SCENE 7 — The surge
+【現在在做：處理尖峰。跟上一題的 mega-stream 是同一個位置的問題】
+------------------------------------------------------------------
+
+INTERVIEWER: A concert ends. 100,000 people request a ride in the same
+neighborhood within two minutes.
+
+CANDIDATE: Right now those requests go straight into the matching service, so
+the matching service has to absorb the entire spike. If it can't keep up,
+requests time out and riders get nothing — and the ones that were in flight when
+an instance died are lost entirely.
+
+So requests go into a queue instead. Kafka. The matching service consumes at
+whatever rate it can manage, and the queue absorbs the difference. Offsets are
+committed only after a match succeeds, so a crash means the request gets picked
+up again rather than disappearing.
+
+INTERVIEWER: Doesn't that make riders wait longer?
+
+CANDIDATE: It makes some riders wait longer, yes. But the alternative is that
+everyone gets a degraded service and some requests silently vanish. A queue turns
+"random failure" into "predictable wait," and I can show the rider a real
+position — "we're finding you a driver" with a number that means something.
+
+I'd also partition the queue geographically. A concert in one city shouldn't
+delay matching in another.
+
+> 「把隨機失敗換成可預測的等待」這句話可以整句背起來。佇列的價值講不清楚的候
+> 選人很多，多數只會說「削峰」。
+
+INTERVIEWER: And scaling globally?
+
+CANDIDATE: Geo-shard the whole stack. A ride in Taipei never needs data from
+Berlin — the working set is naturally local. So each region gets its own Redis,
+its own queue, its own matching service, and requests are routed by region at
+the edge.
+
+The awkward part is city boundaries. A rider standing at the edge of two shards
+needs candidates from both, so those requests fan out to two regions and merge.
+That's a small fraction of traffic and it's worth the complexity everywhere else.
+
+
+SCENE 8 — Frontend lens
+【現在在做：主動把前端那一半講出來，不等面試官問】
+----------------------------------------------------
+
+CANDIDATE: Can I spend a few minutes on the client side? There are decisions
+there that the backend design assumes but doesn't enforce.
+
+INTERVIEWER: Please.
+
+CANDIDATE: First, the connection type. For live driver position during a ride I'd
+use WebSocket rather than SSE — the opposite of what I'd pick for a comment feed.
+The rider sends things back mid-ride: cancel, change destination, message the
+driver. That reverse channel is real here, so the bidirectional cost is earned.
+
+Second, state. The fare estimate is server state with an expiry, and the UI has
+to respect that expiry — showing a stale price with a "request" button under it
+is how you end up charging someone a number they never agreed to. When it
+expires, the button re-fetches instead of submitting.
+
+Third, and this is where I'd push back on a product request. "Finding a driver"
+can show optimistically the moment the rider taps. "Driver found, Toyota Prius,
+4 minutes away" cannot. That comes from the lock on the server, and if the client
+guesses it, we've shown a rider a car that was never assigned to them. The rule
+I'd write down: optimistic updates are fine for state the client owns, never for
+state a server lock produces.
+
+Fourth, the map is pure visual. A blind rider needs the driver's distance, ETA,
+and vehicle description as text that a screen reader reaches without hunting.
+And the confirm-pickup control needs a large touch target, because half the
+people using the driver app are looking at it with a car in gear.
+
+INTERVIEWER: The optimistic distinction is a good rule.
+
+> 第三點是這一整份腳本裡最能拉開差距的一段。它同時展示了三件事：知道
+> optimistic update 是什麼、知道它什麼時候不能用、而且理由是從後端的鎖推出來
+> 的。這是全端的證據，不是宣稱。
+
+
+SCENE 9 — Wrapping up
+【現在在做：主動列出沒講到的，並說明為什麼是那三個】
+------------------------------------------------------
+
+INTERVIEWER: What did we not cover?
+
+CANDIDATE: Three things I'd want to come back to.
+
+Surge pricing — the fare estimate would need to read live supply and demand for
+the area, which makes pricing a real-time system rather than a lookup.
+
+Driver incentives in matching — I picked "nearest driver," but a real system
+balances acceptance rate, driver earnings, and time-to-pickup. That's a policy
+question sitting on top of the same infrastructure.
+
+And the second half of the ride. Everything I designed stops at "driver
+accepted." Tracking the trip, handling the driver going through a tunnel and
+losing signal for four minutes, detecting that the ride actually ended — that's
+a whole second system.
+
+INTERVIEWER: Good. That's time.
+
+
+跟上一題的對照，值得記
+==========================
+
+FB Live Comments                    Uber
+--------------------------------    --------------------------------
+瓶頸是出口頻寬（2 TB/s）            瓶頸是寫入次數（2M writes/s）
+整體選 AP，一個小例外               整體選 AP，但核心那條是 CP
+SSE，因為反向通道用不到             WebSocket，因為乘客要往回送
+規模問題用取樣跟 CDN 解             規模問題用地理分片跟佇列解
+沒有鎖                              鎖是整題的心臟
+
+同一套流程，因為 requirements 不同，走出兩張不一樣的圖。這就是為什麼那三十秒
+的 requirements 不能跳過。
+
+
+三條規則（跟上一題同一份，這次多一條）
+========================================
+
+1. 一次只給一層，等他問「這樣夠嗎」再給下一層。
+2. 講錯就當場改口，「想一下，其實不對」。
+3. 算出荒謬的數字先記著，走到那一步再拿出來解。
+4. 被問到「為什麼要這個元件」的時候，答案應該是前一個問題，不是它的功能。
+   Temporal 的理由是「服務掛了迴圈狀態會消失」，不是「它是 workflow engine」。

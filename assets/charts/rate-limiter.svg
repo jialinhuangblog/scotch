@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1950" height="1427" viewBox="0 0 1950 1427">
+<rect x="0" y="0" width="1950" height="1427" fill="#ffffff"/>
+<text x="40" y="67" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Distributed Rate Limiter</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(0) Client</text>
+<rect x="310" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(1) API Gateway</text>
+<text x="418" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">rate limit 做在這一層</text>
+<rect x="580" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="688" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(3) App Service</text>
+<text x="688" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">通過才進得來</text>
+<rect x="40" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="148" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(4) 429 Too Many Requests</text>
+<text x="148" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">Retry-After 幾秒</text>
+<rect x="310" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="418" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(2) Redis Cluster</text>
+<text x="418" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">token bucket + Lua</text>
+<rect x="850" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#868e96" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="958" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(5) Config Service</text>
+<text x="958" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">規則，30 秒 poll 一次</text>
+<polyline points="255.0,187.0 310.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,187.0 300.0,191.5 300.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,187.0 580.0,187.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,187.0 570.0,191.5 570.0,182.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="417.5,224.0 417.5,295.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,295.0 413.0,285.0 422.0,285.0" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="310.0,187.0 282.0,187.0 282.0,332.0 255.0,332.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="255.0,332.0 265.0,327.5 265.0,336.5" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="957.5,295.0 957.5,110.0 417.5,110.0 417.5,150.0" fill="none" stroke="#868e96" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="417.5,150.0 413.0,140.0 422.0,140.0" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+<text x="1450" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1450" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1450" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1450" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 依 user ID / IP / API key 認出是誰</text>
+<text x="1450" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. 依規則 rate limit，例如每人每分鐘 100 次</text>
+<text x="1450" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 超過就回 429，附上剩餘額度與重置時間</text>
+<text x="1450" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1450" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  每秒 100 萬次請求，1 億 DAU</text>
+<text x="1450" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  每次檢查的額外延遲 &lt; 10ms</text>
+<text x="1450" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  可用性優先，跨節點 eventual consistency 可接受</text>
+<text x="1450" y="433" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">四種算法，為什麼選 token bucket</text>
+<text x="1450" y="451" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  fixed window      實作最短，但窗口交界可以連發兩倍量</text>
+<text x="1450" y="468" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  sliding log       每筆都記時間戳，準確，記憶體吃不消</text>
+<text x="1450" y="486" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  sliding counter   用前一窗加權估算，省記憶體，是近似值</text>
+<text x="1450" y="503" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  token bucket      桶子固定速率補 token，天生容得下短暫爆量</text>
+<text x="1450" y="521" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="538" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">壞掉的時候放行還是拒絕</text>
+<text x="1450" y="556" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  fail-open  rate limiter 掛了就全放行，賭上游接得下來</text>
+<text x="1450" y="573" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  fail-closed 全部拒絕。選這個：</text>
+<text x="1450" y="591" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">    rate limiter 出事的時刻，通常就是流量尖峰的時刻</text>
+<text x="1450" y="703" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從客戶端往後走）</text>
+<text x="1450" y="721" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 → 1     rate limit 做在 gateway，不是每個 app 自己做</text>
+<text x="1450" y="738" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">2         gateway 沒有全域狀態，狀態放 Redis</text>
+<text x="1450" y="756" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">3         通過的才往上游走</text>
+<text x="1450" y="773" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">4         沒通過的走這條，回 429</text>
+<text x="1450" y="791" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">5         規則要能改，最後補設定服務</text>
+<text x="1450" y="843" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1450" y="861" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1450" y="878" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1450" y="896" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0 起：前端元件樹的順序</text>
+<text x="40" y="493" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">為什麼一定要 Lua</text>
+<text x="40" y="511" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  讀 token 數、算補了多少、扣掉、寫回，是四個動作。</text>
+<text x="40" y="528" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  同一個使用者的兩個請求同時進來，兩邊都讀到 5 顆 token，</text>
+<text x="40" y="546" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  各扣一顆各寫回 4，結果放行了兩次卻只扣一次。</text>
+<text x="40" y="563" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  Lua 腳本在 Redis 端一次跑完，中間插不進第二個請求。</text>
+<text x="40" y="673" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">回應</text>
+<text x="40" y="691" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">====</text>
+<text x="40" y="708" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">HTTP 429</text>
+<text x="40" y="726" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">X-RateLimit-Limit: 100</text>
+<text x="40" y="743" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">X-RateLimit-Remaining: 0</text>
+<text x="40" y="761" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">X-RateLimit-Reset: 1723000000</text>
+<text x="40" y="778" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Retry-After: 12</text>
+<text x="40" y="839" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="148" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;ApiClient&gt;  (F0)</text>
+<rect x="310" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;RetryPolicy&gt;  (F1)</text>
+<rect x="310" y="1020" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1062" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;QuotaBadge&gt;  (F2)</text>
+<polyline points="255.0,912.0 310.0,912.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,912.0 300.0,916.5 300.0,907.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,949.0 417.5,1020.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1020.0 413.0,1010.0 422.0,1010.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<text x="1450" y="964" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">這題前端是被 rate limit 的那一方</text>
+<text x="1450" y="983" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============================</text>
+<text x="1450" y="1002" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">收到 429 之後</text>
+<text x="1450" y="1020" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  照 Retry-After 等，不要自己用指數退避猜</text>
+<text x="1450" y="1039" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  沒有 Retry-After 才退回指數退避 + jitter，</text>
+<text x="1450" y="1058" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  不加 jitter 的話所有客戶端會在同一秒一起重試</text>
+<text x="1450" y="1077" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1096" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">不要等使用者撞到</text>
+<text x="1450" y="1114" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  X-RateLimit-Remaining 剩個位數就把按鈕轉成警示狀態</text>
+<text x="1450" y="1133" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  告訴他還剩幾次、幾點恢復，而不是按下去才說不行</text>
+<text x="1450" y="1152" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1170" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">先別把額度浪費掉</text>
+<text x="1450" y="1189" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  同一頁三個元件各自打同一支 API，就是三次額度</text>
+<text x="1450" y="1208" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  query 層去重（同 key 同時只發一次）直接省掉兩次</text>
+<text x="1450" y="1227" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  搜尋框加 debounce，每個字母打一次是最常見的浪費</text>
+<text x="1450" y="1246" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1264" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">樂觀更新遇到 429</text>
+<text x="1450" y="1283" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  一定要回滾，而且要說明是被 rate limit 而不是操作失敗</text>
+<text x="1450" y="1302" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1320" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="1450" y="1339" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  429 的訊息進 aria-live="assertive"：這是阻斷性錯誤，</text>
+<text x="1450" y="1358" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  跟直播留言相反，這裡就是要打斷</text>
+<text x="1450" y="1377" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  倒數秒數用 aria-live="off"，不然每秒念一次</text>
+</svg>

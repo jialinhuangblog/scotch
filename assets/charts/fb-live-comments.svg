@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1950" height="1540" viewBox="0 -10 1950 1540">
+<rect x="0" y="-10" width="1950" height="1540" fill="#ffffff"/>
+<text x="40" y="57" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FB Live Comments</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="170" height="70" rx="10" fill="none" stroke="#1e1e1e" stroke-width="2"/>
+<text x="125" y="191" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Commenter Client (0)</text>
+<polyline points="210.0,185.0 270.0,185.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="270.0,185.0 260.0,189.5 260.0,180.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<rect x="270" y="150" width="170" height="70" rx="10" fill="none" stroke="#e8590c" stroke-width="2"/>
+<text x="355" y="191" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">API GW / Auth (1)</text>
+<polyline points="440.0,185.0 500.0,185.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="500.0,185.0 490.0,189.5 490.0,180.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<rect x="516" y="166" width="190" height="70" rx="10" fill="none" stroke="#adb5bd" stroke-width="2"/>
+<rect x="508" y="158" width="190" height="70" rx="10" fill="none" stroke="#868e96" stroke-width="2"/>
+<rect x="500" y="150" width="190" height="70" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="595" y="191" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Comment Mgmt Svc (2)</text>
+<polyline points="706.0,185.0 760.0,185.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="760.0,185.0 750.0,189.5 750.0,180.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<rect x="760" y="150" width="170" height="70" rx="10" fill="none" stroke="#2f9e44" stroke-width="2"/>
+<text x="845" y="181" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">DynamoDB (3)</text>
+<text x="845" y="201" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">pk = liveVideoId</text>
+<polyline points="595.0,236.0 595.0,320.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="595.0,320.0 590.5,310.0 599.5,310.0" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<text x="605" y="271" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#e8590c" text-anchor="start" xml:space="preserve">publish</text>
+<text x="490" y="349" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#868e96" text-anchor="end" xml:space="preserve">channel =</text>
+<text x="490" y="367" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#868e96" text-anchor="end" xml:space="preserve">hash(liveVideoId) % N</text>
+<rect x="500" y="320" width="190" height="70" rx="10" fill="none" stroke="#e03131" stroke-width="2"/>
+<text x="595" y="351" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Redis Pub/Sub (6)</text>
+<text x="595" y="371" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">N 個 partition</text>
+<polyline points="690.0,355.0 760.0,355.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="760.0,355.0 750.0,359.5 750.0,350.5" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<rect x="776" y="336" width="190" height="70" rx="10" fill="none" stroke="#adb5bd" stroke-width="2"/>
+<rect x="768" y="328" width="190" height="70" rx="10" fill="none" stroke="#868e96" stroke-width="2"/>
+<rect x="760" y="320" width="190" height="70" rx="10" fill="#ffffff" stroke="#1971c2" stroke-width="2"/>
+<text x="855" y="351" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Broadcast Server (5)</text>
+<text x="855" y="371" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">持 SSE 連線</text>
+<text x="980" y="309" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1971c2" text-anchor="start" xml:space="preserve">SSE</text>
+<polyline points="966.0,355.0 1060.0,355.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="1060.0,355.0 1050.0,359.5 1050.0,350.5" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<rect x="1060" y="320" width="190" height="70" rx="10" fill="none" stroke="#1e1e1e" stroke-width="2"/>
+<text x="1155" y="361" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Viewer Client (4)</text>
+<polyline points="855.0,450.0 855.0,406.0" fill="none" stroke="#868e96" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="855.0,406.0 859.5,416.0 850.5,416.0" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+<rect x="760" y="450" width="190" height="70" rx="10" fill="none" stroke="#868e96" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="855" y="481" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Dispatcher (7)</text>
+<text x="855" y="501" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">etcd / Zookeeper</text>
+<text x="970" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">記帳：哪台 broadcast server</text>
+<text x="970" y="491" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">訂了哪幾場直播的 channel</text>
+<polyline points="595.0,390.0 595.0,620.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="595.0,620.0 590.5,610.0 599.5,610.0" fill="#ffffff" stroke="#0c8599" stroke-width="1.5"/>
+<text x="40" y="614" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#0c8599" text-anchor="start" xml:space="preserve">Mega-stream 逃生門</text>
+<text x="40" y="633" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#0c8599" text-anchor="start" xml:space="preserve">  單場觀眾多到 SSE 連線開不完時，</text>
+<text x="40" y="652" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#0c8599" text-anchor="start" xml:space="preserve">  改成每秒推一份最近 100~200 則的快照上 CDN，</text>
+<text x="40" y="670" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#0c8599" text-anchor="start" xml:space="preserve">  客戶端輪詢 CDN。延遲從 200ms 放寬到 1~2 秒。</text>
+<rect x="500" y="620" width="190" height="70" rx="10" fill="none" stroke="#0c8599" stroke-width="2"/>
+<text x="595" y="651" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">Snapshot Builder (8)</text>
+<text x="595" y="670" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">ring buffer 100~200</text>
+<polyline points="690.0,655.0 760.0,655.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="760.0,655.0 750.0,659.5 750.0,650.5" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<rect x="760" y="620" width="170" height="70" rx="10" fill="none" stroke="#0c8599" stroke-width="2"/>
+<text x="845" y="661" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">CDN (9)</text>
+<polyline points="930.0,655.0 1060.0,655.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="1060.0,655.0 1050.0,659.5 1050.0,650.5" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<rect x="1060" y="620" width="190" height="70" rx="10" fill="none" stroke="#1e1e1e" stroke-width="2"/>
+<text x="1155" y="661" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="16" fill="#1e1e1e" text-anchor="middle">Viewer 每秒 poll (10)</text>
+<text x="1330" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1330" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1330" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1330" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 觀眾在直播底下留言</text>
+<text x="1330" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. 看到別人剛留的，near-real-time</text>
+<text x="1330" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 看得到自己加入前的留言</text>
+<text x="1330" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  out of scope：回覆留言、對留言按表情</text>
+<text x="1330" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1330" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1330" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  百萬場直播同時進行</text>
+<text x="1330" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  單場每秒數千則留言</text>
+<text x="1330" y="370" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  端到端 &lt; 200ms</text>
+<text x="1330" y="389" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  可用性優先，eventual consistency 可接受</text>
+<text x="1330" y="453" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1330" y="471" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1330" y="488" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1330" y="506" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0~F4：前端元件樹的先後順序</text>
+<text x="1330" y="558" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從瀏覽器開始往後走）</text>
+<text x="1330" y="576" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 留言者瀏覽器 → 1 API GW → 2 Comment Svc → 3 DynamoDB</text>
+<text x="1330" y="593" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">4 觀眾瀏覽器 ← 5 Broadcast Server ← 6 Redis Pub/Sub</text>
+<text x="1330" y="611" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">7 Dispatcher：5 跟 6 都畫完，才看得出來需要它</text>
+<text x="1330" y="628" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">8 → 9 → 10 是單場人數大到 SSE 開不完時才補的替代路徑</text>
+<text x="40" y="773" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">API</text>
+<text x="40" y="791" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===</text>
+<text x="40" y="808" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST /comments/:liveVideoId            { message }</text>
+<text x="40" y="826" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /comments/:liveVideoId?cursor={last_id}&amp;pageSize=10&amp;sort=desc</text>
+<text x="40" y="843" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /comments/:liveVideoId?since={last_id}&amp;limit=100    // 斷線後補資料</text>
+<text x="40" y="861" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">SSE  /stream/:liveVideoId              // 重連時瀏覽器自動帶 Last-Event-ID</text>
+<text x="40" y="919" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="950" width="200" height="60" rx="10" fill="none" stroke="#7048e8" stroke-width="2"/>
+<text x="140" y="985" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;LiveVideoPage&gt; (F0)</text>
+<polyline points="240.0,980.0 300.0,980.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="300.0,980.0 290.0,984.5 290.0,975.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<rect x="300" y="950" width="190" height="60" rx="10" fill="none" stroke="#7048e8" stroke-width="2"/>
+<text x="395" y="985" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;VideoPlayer&gt; (F1)</text>
+<polyline points="140.0,1010.0 140.0,1070.0 300.0,1070.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="300.0,1070.0 290.0,1074.5 290.0,1065.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<rect x="300" y="1040" width="190" height="60" rx="10" fill="none" stroke="#7048e8" stroke-width="2"/>
+<text x="395" y="1075" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;CommentPanel&gt; (F2)</text>
+<polyline points="490.0,1070.0 550.0,1070.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="550.0,1070.0 540.0,1074.5 540.0,1065.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<rect x="550" y="1040" width="260" height="60" rx="10" fill="none" stroke="#7048e8" stroke-width="2"/>
+<text x="680" y="1075" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;CommentList&gt; 虛擬 (F3)</text>
+<polyline points="395.0,1100.0 395.0,1160.0 550.0,1160.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="550.0,1160.0 540.0,1164.5 540.0,1155.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<rect x="550" y="1130" width="260" height="60" rx="10" fill="none" stroke="#7048e8" stroke-width="2"/>
+<text x="680" y="1165" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;CommentComposer&gt; (F4)</text>
+<text x="880" y="954" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">State split</text>
+<text x="880" y="973" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===========</text>
+<text x="880" y="992" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">server state　歷史留言：cursor 分頁，react-query 快取</text>
+<text x="880" y="1010" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">client state　SSE 進來的即時留言：append-only buffer，</text>
+<text x="880" y="1029" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">　　　　　　　超過 500 則裁掉最舊的，DOM 節點數才不會一直長</text>
+<text x="880" y="1048" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">URL state　　 videoId、?t= 播放秒數：可分享，上一頁回得去</text>
+<text x="880" y="1067" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="880" y="1086" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">兩份合成同一個列表時要去重：自己剛送出的那則</text>
+<text x="880" y="1104" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">會從 SSE 再回來一次，用 server id 比對</text>
+<text x="880" y="1123" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="880" y="1142" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Rendering</text>
+<text x="880" y="1160" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  直播頁互動為主、SEO 不吃緊 → CSR</text>
+<text x="880" y="1179" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  外殼（播放器骨架）SSR 先出，留言區再 hydrate</text>
+<text x="880" y="1198" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="880" y="1217" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Optimistic append</text>
+<text x="880" y="1236" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  送出時先在本地插一則 pending，帶 tempId</text>
+<text x="880" y="1254" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  201 回來換成 server id；失敗改紅字 + 一顆重試</text>
+<text x="880" y="1273" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="880" y="1292" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Reconnect</text>
+<text x="880" y="1310" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  SSE 斷線，瀏覽器自動帶 Last-Event-ID 重連，server 回放漏掉的</text>
+<text x="880" y="1329" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  缺口超過 5 分鐘就不回放，改打 catch-up API 補最近 100 則</text>
+<text x="880" y="1348" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  切到背景分頁時主動斷線，回前景再補</text>
+<text x="880" y="1367" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="880" y="1386" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="880" y="1404" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  留言區 aria-live="polite"，不要用 assertive</text>
+<text x="880" y="1423" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  assertive 每來一則就打斷螢幕閱讀器正在念的句子，</text>
+<text x="880" y="1442" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  一秒好幾則的直播等於完全不能聽</text>
+<text x="880" y="1460" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  作者名和內容包在同一個節點一起念</text>
+<text x="880" y="1479" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  時間戳用 &lt;time&gt;，不進朗讀流</text>
+</svg>

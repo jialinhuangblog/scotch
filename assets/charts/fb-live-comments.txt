@@ -1,0 +1,455 @@
+FB LIVE COMMENTS — MOCK INTERVIEW SCRIPT
+=========================================
+
+The candidate knows the tech but has bad instincts about sequencing. Each scene
+has one typical mistake, then the interviewer pulls them back.
+Lines marked with > are director's notes, not spoken.
+
+
+SCENE 0 — Opening. The candidate jumps straight to architecture.
+----------------------------------------------------------------
+
+INTERVIEWER: Today we're designing comments for Facebook Live. People watching
+a live video can post a comment underneath it, and they see other people's
+comments too. You've got 45 minutes. Go ahead.
+
+CANDIDATE: Okay, so I think we'll need a WebSocket connection, and then behind
+that a Kafka topic, and once the comment is written we—
+
+INTERVIEWER: Hold on. You're already picking technology. I haven't told you how
+big this system is or who's using it.
+
+CANDIDATE: Oh, right. Sorry. Let me back up and ask about requirements first.
+
+> Don't apologize, just turn. But the turn itself is correct.
+
+CANDIDATE: So a few things I want to nail down. First — "seeing other people's
+comments," does that mean in real time, or is it fine if they show up on
+refresh?
+
+INTERVIEWER: Real time. Viewers should feel like they're in sync with the
+broadcaster.
+
+CANDIDATE: Okay, so a few hundred milliseconds. Is that the right ballpark?
+
+INTERVIEWER: Yeah, let's say 200 milliseconds.
+
+CANDIDATE: Second — if someone joins the stream halfway through, do they see
+the comments from before they joined?
+
+INTERVIEWER: Yes, they do.
+
+CANDIDATE: And third, can you reply to a comment, or react to one?
+
+INTERVIEWER: Not this round. Just the comments themselves.
+
+> Those three questions each buy something. The first one decides push versus
+> poll. The second one decides whether we need a database at all. The third one
+> kills nesting and reaction counters, which makes the data model flat.
+
+
+SCENE 1 — Locking down the functional requirements
+---------------------------------------------------
+
+CANDIDATE: Let me write down the functional requirements and you tell me if I
+got them right.
+
+  1. A viewer can post a comment under a live video
+  2. A viewer sees new comments from other people in near real time (~200ms)
+  3. A viewer can see comments posted before they joined
+
+  Out of scope: replying to comments, reactions, reporting, deleting
+
+INTERVIEWER: That works.
+
+> Three sentences, twenty seconds. Every one of them is "what can a user do,"
+> and none of them contain the words WebSocket, Kafka, or database. The out of
+> scope line matters — it's you confirming the boundary so nobody says later
+> that you missed something.
+
+
+SCENE 2 — Non-functional requirements. The candidate is scared of numbers.
+---------------------------------------------------------------------------
+
+CANDIDATE: Next I want to know the scale. How big is this?
+
+INTERVIEWER: You tell me. It's Facebook Live.
+
+CANDIDATE: Um... big.
+
+INTERVIEWER: How big?
+
+CANDIDATE: I don't know the real numbers, but let me reason about it. Live
+streams happening at the same time, I'll say a million. Most of them have
+almost nobody watching — it's a handful of celebrity streams and sports games
+that actually matter. For a peak single stream, let's say two million
+concurrent viewers, and maybe a few thousand comments per second. Is that the
+right order of magnitude?
+
+INTERVIEWER: That's reasonable.
+
+> "I don't know" is fine, as long as you follow it with a number you can
+> derive, and then ask the interviewer to confirm. Freezing loses points.
+> Inventing a number with false confidence loses more.
+
+CANDIDATE: Let me do one quick calculation before I go on. Two million viewers
+on one stream. If every viewer receives every comment, that's 5,000 comments a
+second times 2 million people — ten billion messages per second. Call it 200
+bytes a comment, so, what, 2 terabytes per second of egress. That number can't
+be real.
+
+INTERVIEWER: So what?
+
+CANDIDATE: So at the very top end, not everyone can receive everything. I'm
+going to park that and come back to it when I get to that part of the design.
+
+> This is the important bit in this scene. You found an absurd number — do NOT
+> immediately start solving it. Park it and keep going. Junior candidates blow
+> up here, start talking about sampling and CDNs, and run out of time before
+> the requirements are even done.
+
+CANDIDATE: One more thing on consistency. Is it okay if two viewers see
+comments in a slightly different order?
+
+INTERVIEWER: What do you think?
+
+CANDIDATE: I think it's fine. Comments aren't money and they aren't inventory.
+Nobody's going to notice the ordering. So I'd pick availability over
+consistency, eventual consistency is fine.
+
+There's one exception though. The person who wrote the comment — if they
+refresh, they'd better see their own comment. That's read-after-write, and that
+path can't be eventual.
+
+INTERVIEWER: Good.
+
+> That's the scoring moment. Not reciting CAP — saying "the system is AP, except
+> this one path." If the interviewer pushes, add PACELC: even with no partition
+> you're still choosing between latency and consistency, and the 200ms target
+> means you picked latency.
+
+CANDIDATE: So the non-functional requirements are:
+
+  - A million concurrent streams; a few thousand comments/sec on a hot one
+  - End to end under 200ms
+  - Availability over consistency, eventual is fine
+  - Except: the author reading their own comment needs read-after-write
+  - A comment shouldn't be counted twice or shown twice
+
+INTERVIEWER: Good, keep going.
+
+
+SCENE 3 — Entities and API. The candidate wants to skip them.
+--------------------------------------------------------------
+
+CANDIDATE: Alright, so let me draw the architec—
+
+INTERVIEWER: Give me the data first.
+
+CANDIDATE: Okay. Three things:
+
+  User        id, name, avatar
+  LiveVideo   id, broadcaster_id, started_at   (another team owns this, I'm
+                                                treating it as a black box)
+  Comment     id, live_video_id, user_id, text, created_at
+
+Comment is flat, because we ruled out replies and reactions earlier.
+
+On the video side, I'm going to assume the streaming team hands me a stable
+liveVideoId and tells me when a stream starts and ends. That's the entire
+interface I need from them — I'm not designing encoding or segmenting. And if
+their service is down, posting a comment just fails; I'm not going to try to
+work around it on my side.
+
+> "Another team owns this" is a good sentence. It closes off a whole area so the
+> interviewer doesn't drag you into video streaming.
+>
+> Note the wording: "I'm going to assume," not "I expect they've done a good
+> job." You're not vouching for another team's quality, you're stating an
+> interface and a failure mode. If you only say the first half, the interviewer
+> will ask "and what if that service is down?" — so say the second half yourself.
+> ("assume" is the word here, by the way. "Presume" implies you have grounds to
+> believe it; you're just setting a premise so you can move on.)
+
+CANDIDATE: For the API:
+
+  POST /comments/:liveVideoId          { text }
+  GET  /comments/:liveVideoId?cursor={last_id}&limit=50
+
+The second one is for "comments from before you joined." Cursor, not offset,
+because comments keep arriving — with offset pagination you'd get duplicates or
+skip things.
+
+INTERVIEWER: What about the real-time one?
+
+CANDIDATE: I haven't decided what that is yet. I'll fill it in once I get to
+that part of the design.
+
+> Much better than making up an endpoint on the spot. It also honestly flags
+> where you are in the process.
+
+
+SCENE 4 — The dumbest version that works
+------------------------------------------
+
+CANDIDATE: Let me draw the simplest thing that satisfies all three functional
+requirements.
+
+  Client ──POST /comments──> Comment Service ──> DB
+  Client ──GET  /comments──> Comment Service ──> DB
+
+Comment gets written to the DB. To read comments you query the DB. For comments
+from before you joined, you page backwards with the cursor. As for real time...
+this version doesn't do real time. The client would just have to keep
+re-requesting.
+
+INTERVIEWER: How often would it re-request?
+
+CANDIDATE: If we want it within 200 milliseconds, then every 200 milliseconds.
+Two million viewers polling every 200ms is ten million requests a second, and
+most of them come back empty. That doesn't work.
+
+INTERVIEWER: So?
+
+CANDIDATE: So the server has to push instead.
+
+> Don't skip this scene. Draw the dumb version, then break it yourself. That's
+> what earns every component you add later. People who draw the full
+> architecture up front can't answer "why is that there."
+
+
+SCENE 5 — Push. The candidate dumps three layers at once.
+-----------------------------------------------------------
+
+CANDIDATE: So I'll use WebSockets, and each server subscribes to a Kafka topic,
+and then we shard with consistent hashing, and then—
+
+INTERVIEWER: Slow down. Just the first decision. Why WebSockets?
+
+CANDIDATE: Uh... because it's bidirectional.
+
+INTERVIEWER: Does this problem need bidirectional?
+
+CANDIDATE: Let me think... actually, not really. Way more people are watching
+than commenting, and posting a comment is just a normal POST — I never use the
+reverse channel. So let me switch to SSE, Server-Sent Events. It's one
+direction, it rides on plain HTTP, and the browser reconnects on its own when
+the connection drops.
+
+INTERVIEWER: Good.
+
+> This is the single best thing in the whole script: when you're asked for your
+> reasoning and you realize you picked wrong, change your answer right there.
+> Defending a bad choice costs more than switching. And notice the reason came
+> from the requirements — "more people watch than comment" — not from memory.
+
+
+SCENE 6 — Sharding, one layer at a time
+-----------------------------------------
+
+CANDIDATE: SSE is a long-lived connection, so a viewer is pinned to one
+particular server. But the comment arrives on a different server — the one that
+handled the POST. So I need something in between to broadcast. Simplest version
+first:
+
+  POST → Comment Service → DB
+                         → Redis pub/sub (one channel, everything goes in)
+                                ↓ every broadcast server subscribes
+                           Broadcast Server → SSE → viewers
+
+INTERVIEWER: What's wrong with that?
+
+CANDIDATE: Every broadcast server receives comments for every live stream in the
+world, but the viewers sitting on it only care about a few streams. With 500
+servers, 99% of the message processing is wasted.
+
+INTERVIEWER: How do you fix it?
+
+CANDIDATE: Split it into channels. hash(liveVideoId) % N decides which channel a
+stream's comments go to, and all the comments for one stream always land in the
+same channel. A server only subscribes to the channels it needs.
+
+The unit I'm sharding on is the stream, not the comment. You can't split a
+single stream across channels — if you did, viewers on one server would only
+get part of that stream's comments.
+
+INTERVIEWER: Did that actually save you anything?
+
+CANDIDATE: Let me think... no, not yet, actually. If every server has a few
+viewers from every stream scattered across it, every server still has to
+subscribe to all the channels.
+
+INTERVIEWER: So what do you do?
+
+CANDIDATE: I need viewers of the same stream to land on the same set of servers.
+So the Dispatcher assigns streams to servers up front: "stream A is handled by
+bc-07 and bc-08," and that assignment goes into etcd. bc-07 is watching etcd,
+sees it's been given stream A, and subscribes to that stream's channel. Only
+after that does the Dispatcher start sending stream A's viewers to bc-07.
+
+The order matters — assign, then subscribe, then take viewers. If a server only
+subscribed once its first viewer showed up, the comments in the gap before the
+subscription takes effect are just gone, and that viewer has no way to know.
+
+So now it does save something. Stream A's viewers are concentrated on two
+servers, and those two only subscribe to A's channel instead of all five.
+
+INTERVIEWER: How does the Dispatcher decide who gets what?
+
+CANDIDATE: By current load and how hot the stream is, not by hashing. A stream
+that just started gets one server. If the audience climbs, the Dispatcher pulls
+in more servers and points new viewers at them, leaving existing connections
+alone. That's what the lookup table buys you — hashing can't grow a stream's
+capacity mid-flight.
+
+And I wouldn't drop a subscription the moment the last viewer leaves. Say a
+small stream has three viewers on bc-07 and all three close the tab — if bc-07
+unsubscribes right away and two people join ten seconds later, it has to
+subscribe again. Anyone who joins during the gap between unsubscribe and
+resubscribe silently misses comments. So I'd wait five minutes after the last
+viewer before dropping it. The cost of waiting is just receiving some comments
+nobody wants, which is cheap.
+
+> Watch the rhythm here. One layer at a time, and you wait for "does that
+> actually work" before giving the next one. Dumping all three at once makes it
+> impossible for the interviewer to tell whether you understand it or memorized
+> it.
+
+
+SCENE 7 — Disconnects
+-----------------------
+
+INTERVIEWER: What happens when the long-lived connection drops?
+
+CANDIDATE: It will drop, and it'll drop constantly — phones switching networks,
+elevators, backgrounding the app. Comments during that window are just missed.
+
+SSE has an answer built in. Every event carries an id, and when the browser
+reconnects it automatically sends Last-Event-ID in the header, so the server
+knows where to resume.
+
+INTERVIEWER: Resume how far back?
+
+CANDIDATE: Not unlimited. I'd draw the line at five minutes. Past that, treat
+them as a fresh join and just hit GET /comments for the latest batch. Somebody
+who was gone for half an hour doesn't want to read half an hour of comments
+anyway.
+
+For those few minutes of replay I'd keep recent comments in Redis so I'm not
+going back to the database for it.
+
+INTERVIEWER: And when the phone backgrounds the app?
+
+CANDIDATE: Close the connection deliberately before backgrounding, so the server
+isn't holding an idle connection for nobody. Reconnect and catch up on
+foreground. That's the frontend's job.
+
+
+SCENE 8 — Back to that 2 TB/s
+-------------------------------
+
+CANDIDATE: I want to come back to the number I calculated earlier. At two
+million viewers on one stream this whole SSE setup falls apart — a single server
+can't hold that many connections, and pushing everything is still 2 TB/s.
+
+INTERVIEWER: What do you do about it?
+
+CANDIDATE: Two directions.
+
+The first is sampling. Above some viewer count, the server decides to push only
+a fraction of the comments to each viewer. Nobody can read 5,000 comments a
+second anyway — what's scrolling past is really just a feeling of "this place is
+busy."
+
+The second one saves more. At that scale everyone can be looking at the same
+thing. So every second, take the most recent 100 to 200 comments, write them as
+a snapshot to the CDN, and have clients poll that instead of holding an SSE
+connection. Two million viewers become one origin fetch as far as the backend is
+concerned.
+
+The cost is latency — 200 milliseconds becomes one to two seconds. I think
+that's acceptable at that scale. On a stream with two million people, the
+comments aren't a conversation anymore, they're atmosphere.
+
+INTERVIEWER: When do you switch over?
+
+CANDIDATE: Pick a threshold — say, above 500,000 concurrent viewers you flip to
+CDN mode, and flip back when it drops. The actual number would come from
+measuring it.
+
+> You parked something, and now you unpark it at the right moment, with the cost
+> and the switching condition. That lands better than opening with "we'll use a
+> CDN," because now everyone listening knows which number it's solving.
+
+
+SCENE 9 — Bringing up the frontend without being asked
+--------------------------------------------------------
+
+CANDIDATE: That's roughly the backend. I'd like to spend a few minutes on the
+frontend, because there are a few places here where if the client gets it wrong
+it doesn't matter how good the backend is.
+
+INTERVIEWER: Go ahead.
+
+CANDIDATE: First, the comments on screen actually come from two different
+sources and you can't blur them together. The older comments came from an API
+call — refetchable, cacheable. The ones coming in over SSE are a stream you
+can't replay; if it breaks, it's broken. When you merge them into one list you
+have to dedupe, because the comment you just posted comes back to you over SSE
+as well. Match on the server-assigned id.
+
+Second, posting a comment should be an optimistic update. Insert it locally in a
+pending state, swap in the real id when the 201 comes back. On failure, mark it
+red with a retry button — don't swallow it silently.
+
+Third, the DOM needs a ceiling. Thousands of comments a second means the node
+count grows without limit. I'd keep the last 500 and drop the oldest, plus a
+virtualized list so only the visible ones actually render.
+
+Fourth, there's a specific accessibility trap here. If the comment region uses
+aria-live="assertive", every incoming comment interrupts whatever the screen
+reader is in the middle of saying. On a stream with several comments a second
+that makes it completely unusable by ear. It has to be "polite" so it finishes
+the current sentence first. And the author name and the comment text need to be
+in the same node, otherwise they get announced as two unrelated fragments.
+
+INTERVIEWER: I hadn't thought about that one.
+
+> This is the differentiator. Everyone can talk about the backend pieces. Most
+> backend-leaning candidates cannot say those four things. And you brought it up
+> yourself — you didn't wait to be asked.
+
+
+SCENE 10 — Wrapping up
+------------------------
+
+INTERVIEWER: Anything you'd want to add?
+
+CANDIDATE: Three things I'm aware of but didn't get into.
+
+One is moderation — profanity and spam filtering. That hangs off the write path,
+done asynchronously: show it, then pull it back if it fails.
+
+Two is write hotspots. If one stream's comment volume saturates a single
+partition, you add a random suffix to the key to spread it out and strip the
+suffix before aggregating.
+
+Three is multi-region. What I described is single-region. Across regions the
+pub/sub layer has to replicate, and latency becomes the dominant problem.
+
+INTERVIEWER: Alright, that's about time.
+
+
+THREE RULES YOU CAN COPY
+==========================
+
+1. Give one layer at a time. Wait for "does that actually work" before giving
+   the next one. Finish the SSE thought and stop — don't tack on Kafka and
+   sharding while you're at it.
+
+2. When you realize you said something wrong, fix it out loud. "Let me think —
+   actually, no." The WebSocket to SSE switch is worth points, not against them.
+
+3. When a calculation gives you an absurd number, park it. Don't solve it on the
+   spot. Bring it back when you reach that part of the design, so the person
+   listening knows what it's solving.

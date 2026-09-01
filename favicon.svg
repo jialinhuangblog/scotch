@@ -1,0 +1,13 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .ink { stroke: #241c12; }
+    @media (prefers-color-scheme: dark) {
+      .ink { stroke: #efe4d0; }
+    }
+  </style>
+  <!-- copita nosing glass: tulip bowl, long stem, flat foot -->
+  <g class="ink" fill="none" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M10.2 4.6h11.6l-1 6.6c0 3.4-2.1 5.8-4.8 5.8s-4.8-2.4-4.8-5.8z"/>
+    <path d="M16 17v9M10.8 27.6h10.4"/>
+  </g>
+</svg>

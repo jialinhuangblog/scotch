@@ -1,0 +1,282 @@
+WEB CRAWLER — MOCK INTERVIEW SCRIPT
+====================================
+
+這題沒有使用者。客戶端是我們自己，別人的伺服器才是要保護的對象，所以「可用性」
+整個反過來讀。NFR 也不是 QPS，是一個死線：10 億是別題的用戶數，這題是頁數，
+而且要在五天內抓完。對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：先確認這是一個批次工作，不是一個線上服務】
+--------------------------------------------------------
+INTERVIEWER: Design a web crawler. 45 minutes.
+
+CANDIDATE: First question: is this a one-shot crawl with a finish line, say
+building a training corpus, or a continuously running service that keeps
+pages fresh, like a search engine's crawler?
+
+INTERVIEWER: One-shot. We're collecting text to train a model. 10 billion
+pages, and we'd like it done in about 5 days.
+
+CANDIDATE: That changes the whole shape. A one-shot job is a pipeline with a
+deadline, so the math I need to do is bandwidth math, not QPS math. And
+freshness, re-crawling, scheduling by change frequency, all of that drops
+out of scope.
+
+Second question: how seriously do we take politeness? robots.txt, per-domain
+rate limits?
+
+INTERVIEWER: Non-negotiable. We don't want angry emails from ten thousand
+webmasters.
+
+CANDIDATE: Good, because politeness is the part that makes the queue design
+interesting. A crawler that ignores it is a DDoS with a mission statement.
+
+> 「一次性還是持續性」是這題的第一個岔路，答案直接砍掉一半的題目範圍。先問
+> 這個再動筆，比畫完才被問「那 re-crawl 呢」好看得多。
+
+
+SCENE 1 — Functional requirements
+【現在在做：規格很短，範圍切割才是重點】
+------------------------------------------
+CANDIDATE:
+
+  1. Start from seed URLs, crawl outward through links
+  2. Extract the text of each page and store it
+  3. Respect robots.txt and per-domain rate limits
+
+  Out of scope: JavaScript-rendered pages, pages behind login, images and
+  video, and the model training itself. Input is a seed list, output is
+  text sitting in blob storage.
+
+INTERVIEWER: Fine.
+
+> FR 只有三條，但第三條放進 FR 而不是 NFR 是刻意的：禮貌不是品質屬性，是這個
+> 系統「做什麼」的一部分，違反它系統就是錯的，跟漏抓一頁不是同一等級。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：把五天死線換算成機器數，這段算完架構規模就定案了】
+--------------------------------------------------------------
+CANDIDATE: Let me turn the deadline into machine counts.
+
+We fetch HTML only, images and video are out of scope, and an HTML document
+transfers a few tens of kilobytes on average. The tail is long, so call it
+100KB. 10 billion pages at 100KB is about 1 petabyte over the wire in
+5 days, around 2.3 gigabytes a second sustained. A single network-optimized
+instance gives around 200 Gbps on paper, so bandwidth does not size this
+fleet at all.
+
+Concurrency does. 10 billion over 5 days is about 23,000 pages a second,
+and a fetch spends most of its life waiting: DNS, TLS handshake, a slow
+server on the other end. At an average of two seconds per fetch that is
+46,000 requests in flight at any moment. One big instance holds maybe
+8,000 concurrent connections before file descriptors and memory get
+uncomfortable, which is 4,000 pages a second per machine. Six machines
+covers the rate; eight gives slack for retries and for a machine dying
+mid-crawl. So the fetch fleet is eight-ish big instances, not hundreds of
+small ones, and the design should assume a machine dies and nothing is
+lost.
+
+  - 10B pages, ~5 days: ~23k pages/sec needed, fleet sized to ~30k
+  - Fault tolerant: progress survives any single machine dying
+  - Polite: robots.txt honored, bounded rate per domain
+  - Efficient: don't fetch the same content twice
+
+INTERVIEWER: So what's actually slow inside a single fetch?
+
+CANDIDATE: Surprisingly often it's DNS. Every new hostname is a resolution,
+and if you don't cache, resolution can eat most of the elapsed time per
+URL. I'll give DNS its own treatment: an aggressive local cache, and
+spreading queries across several providers so we don't rate-limit ourselves
+at the resolver. It's unglamorous and it's worth more than another fetcher.
+
+> 「只抓 HTML，一頁抓 100KB，頻寬一張網卡就夠；機器數來自同時連線：一頁等兩
+> 秒，隨時掛著 46,000 條」。這題的 NFR 段跟別題不同，算的不是尖峰流量而是
+> 總量除以死線。DNS 那句是實戰訊號，沒抓過的人想不到瓶頸會在解析。
+
+
+SCENE 3 — The pipeline
+【現在在做：兩段式管線，中間用 S3 隔開，理由是重試的成本差一百倍】
+--------------------------------------------------------------------
+CANDIDATE: The skeleton is a two-stage pipeline with a queue in front of
+each stage.
+
+Frontier queue holds URLs to fetch. Fetchers pull a URL, download the HTML,
+and write the raw bytes straight to S3, unparsed. Then a message goes onto
+a second queue, and extractor workers pull from that, parse the HTML,
+extract the text into S3, and extract the links.
+
+INTERVIEWER: Why not parse right in the fetcher? One stage, no second
+queue.
+
+CANDIDATE: Because the two stages fail differently and cost differently to
+retry. A fetch retry costs network, politeness budget, and another hit on
+someone's server. A parse retry costs CPU on bytes we already own. If a
+parser bug surfaces on day 3, and parser bugs on weird HTML are a
+certainty, I re-run parsing over S3 at full speed without touching a single
+website again. Fused into one stage, that bug means re-crawling.
+
+Storing raw HTML first also means the corpus can be re-processed later for
+something else, links to images, structured data, whatever, without a new
+crawl.
+
+INTERVIEWER: A fetcher dies holding fifty URLs.
+
+CANDIDATE: The queue's visibility timeout covers that. A message being
+worked on is invisible, not deleted; the fetcher deletes it only after the
+HTML is safely in S3. Machine dies, timeout expires, the URL reappears and
+another fetcher takes it. Retries come free from the same mechanism, and
+backoff is just lengthening the visibility timeout on each failure. After
+about five failed attempts the message moves to a dead-letter queue so one
+permanently broken URL can't clog the pipeline, and we can look at the DLQ
+later to see what kind of pages we're systematically failing on.
+
+> 「兩段拆開」的理由講到了錢：fetch 重試花的是網路跟禮貌額度，parse 重試花的
+> 是自己的 CPU。visibility timeout 這段是 SQS 的正確用法：不是自己做 ack 跟
+> retry，是指出佇列本身就內建了這套。
+
+
+SCENE 4 — Politeness
+【現在在做：robots.txt 跟每個域名的 rate limit，這是這題的良心，也是排程變難的原因】
+-------------------------------------------------------------------------
+CANDIDATE: Politeness has two halves: what a site allows, and how fast we
+hit it.
+
+robots.txt: fetched once per domain, cached in the metadata DB with the
+domain record. Before fetching any URL we check the cached rules,
+disallowed paths get dropped, and a Crawl-delay directive overrides our
+default rate for that domain.
+
+Rate: default one request per second per domain. Implementation is a
+per-domain lock in Redis, SET NX with a one-second TTL. Fetcher grabs the
+lock, fetches; if the lock is taken, the URL isn't dropped, it goes back to
+the queue with a delay.
+
+INTERVIEWER: What happens when the frontier is full of one domain? Say a
+million URLs from the same site cluster together.
+
+CANDIDATE: That's the real cost of politeness: at one per second, a domain
+caps out at 86,400 pages a day, roughly 430 thousand inside the five-day
+window, and a million pages from one domain takes eleven days no matter how
+many fetchers I own. The fleet math from earlier silently assumed no single
+domain exceeds that cap; I should say it out loud. Sites bigger than that
+end the crawl partially fetched, and for a training corpus I accept it,
+breadth across domains is worth more than completeness of any one site. If
+one giant site is a must-have, the lever is raising that single domain's
+rate where its robots.txt allows it, not adding machines.
+
+The deadline holds because the load spreads across millions of domains.
+When a burst of same-domain URLs does cluster, fetchers keep
+pulling them, failing to get the lock, and re-queueing with delay, which
+wastes queue throughput. Adding jitter to the re-queue delay spreads them
+out so they don't all come back in the same second. It's the same lesson as
+retry storms in the rate limiter problem, from the other side of the wall.
+
+> 「一百萬頁 × 每秒一次 = 十一天，加機器也沒用」把禮貌的代價變成一個算得出來
+> 的數字。能把 rate limiter 題的 jitter 教訓搬過來用，是讀過系統而不是背過
+> 題目的訊號。
+
+
+SCENE 5 — Dedup and traps
+【現在在做：兩層去重（URL 跟內容），然後給爬蟲陷阱設一個深度上限】
+--------------------------------------------------------------------
+CANDIDATE: Two dedup layers, because two different things repeat.
+
+URL level: before a link goes into the frontier, a conditional write into
+the metadata DB, insert if not seen. The DB is the source of truth for
+"have I queued this," so a crashed extractor that re-emits links doesn't
+double-queue them.
+
+Content level: the same page often lives at many URLs, mirrors, tracking
+parameters, http versus https. Hash the extracted text, check the hash
+before storing. Two options for the check: an indexed column in the
+metadata DB, exact but one more DB round-trip per page, or a Bloom filter
+in Redis, faster and smaller but with false positives, and a false
+positive here means silently dropping a page we never actually saw. For a
+training corpus a tiny drop rate is acceptable, so the Bloom filter is
+defensible; for an archive it wouldn't be.
+
+INTERVIEWER: And crawler traps?
+
+CANDIDATE: Pages that generate infinite links, calendars that link to the
+next day forever, session IDs that make every URL unique. The blunt,
+effective guard is a depth limit: track how many hops a URL is from the
+seed, drop anything past 15 or 20. Legitimate content lives shallow;
+nothing worth training on is 40 links deep into a calendar.
+
+> Bloom filter 的取捨講法跟 Tinder 題同款但方向相反：Tinder 是「不會漏、會誤
+> 殺」拿去擋滑過的人，這裡是「誤判等於默默丟頁」，所以要先問這個語料掉幾頁
+> 有沒有關係，才知道能不能用。
+
+
+SCENE 6 — Frontend lens
+【現在在做：爬蟲的前端是操作員的儀表板，設計對象是凌晨三點被叫起來的人】
+---------------------------------------------------------------------------
+CANDIDATE: No consumer ever sees this system, but somebody operates it for
+five straight days, so the frontend is the operator dashboard, and its user
+is a person who just got paged.
+
+The first widget answers one question: are we on pace? Pages per second,
+fleet-wide, against the line we need to finish in 5 days. One number
+against one target. Everything else, queue depths, error rates by domain,
+DLQ size, exists to explain that number when it sags.
+
+Data fetching is plain polling. This is minute-granularity aggregate data;
+a 30-second poll is fine, and the tab stops polling when hidden. No
+WebSocket, nothing here is a conversation.
+
+The DLQ table is where actual work happens: the operator reads failure
+samples to spot systematic problems, one domain serving garbage, one
+parser crash signature. That table needs virtualization once it holds tens
+of thousands of rows, keyboard navigation, and filters that live in the
+URL, so the person who finds "all failures are domain X" can paste the
+exact filtered view into the incident channel and the next person opens
+the same thing.
+
+Controls: pause a domain, retry a DLQ batch. Those are POSTs that flip
+state in the metadata DB, and they get confirmation dialogs, at 3am the
+difference between "pause domain" and "pause crawl" should take two
+clicks to cross, not a slip of one.
+
+a11y carries over from the ad click dashboard: the pace chart gets a text
+line stating current rate versus needed rate, tables are real tables, and
+counters that tick every second are aria-live off, a screen reader
+announcing queue depth once per second is unusable.
+
+> 前端這段的自我定位：使用者是操作員而不是消費者，於是每個選擇都跟著改。
+> 「篩選條件進 URL，貼給下一個值班的人」是把 URL state 用在這題真正需要的
+> 地方。
+
+
+SCENE 7 — Wrapping up
+【現在在做：三個沒展開的】
+-----------------------------
+CANDIDATE: Three things I'd extend.
+
+Continuous crawling. Turn the finish line into a loop: a scheduler that
+re-queues pages by how often they historically change. That's a different
+frontier design, priority instead of FIFO.
+
+JavaScript rendering. A headless browser fleet costs an order of magnitude
+more per page, so you'd want a classifier that decides which pages deserve
+it instead of rendering everything.
+
+Being a good citizen at scale. A published crawler name, contact info in
+the user agent, honoring 429s from sites, and an easy way for a webmaster
+to opt out. At 30 thousand pages a second, courtesy is an operational
+requirement, the alternative is getting our IP ranges blocked mid-crawl.
+
+INTERVIEWER: That's time.
+
+
+跟其他題的差別
+================
+
+別題的可用性是「我要活著服務別人」，這題是「別人要活著被我抓」：唯一會被流量
+影響的是目標網站，所以 rate limiter 裝在自己身上。rate limiter 題的機制搬過來了三個：
+rate limit、退避、jitter，只是方向反過來。
+
+NFR 的形狀也不同：沒有 QPS、沒有 p99，只有一個總量除以死線。算數從「尖峰每秒
+多少」變成「100 億頁五天內抓完要幾台」，而且決定機器數的不是頻寬是同時連線數：
+一頁 100KB，一張網卡的頻寬就夠，貴的是每次抓都掛著連線等兩秒。

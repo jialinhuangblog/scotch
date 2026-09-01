@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1927" height="1624" viewBox="0 0 1927 1624">
+<rect x="0" y="0" width="1927" height="1624" fill="#ffffff"/>
+<text x="40" y="67" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FB News Feed</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(0) Client</text>
+<rect x="310" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(1) API Gateway</text>
+<rect x="580" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(2) Post Service</text>
+<rect x="850" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="958" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(3) Posts DB</text>
+<text x="958" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">DynamoDB，依作者分片</text>
+<rect x="580" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(4) Fanout 佇列</text>
+<text x="688" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">一分鐘預算內送完</text>
+<rect x="850" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#0c8599" stroke-width="2"/>
+<text x="958" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(5) Fanout Workers</text>
+<text x="958" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">大帳號跳過不展開</text>
+<rect x="1120" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="1228" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(6) Follows DB</text>
+<text x="1228" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">GSI 反查誰 follow 我</text>
+<rect x="580" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="688" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(7) Precomputed Feed</text>
+<text x="688" y="492" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">每人 200 則 post id</text>
+<rect x="310" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#1971c2" stroke-width="2"/>
+<text x="418" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(8) Feed Service</text>
+<text x="418" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">預先算好 + 大帳號現查</text>
+<rect x="40" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="148" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(9) Post cache</text>
+<text x="148" y="492" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">每台都放整份熱門文</text>
+<polyline points="255.0,187.0 310.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,187.0 300.0,191.5 300.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,187.0 580.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,187.0 570.0,191.5 570.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="795.0,187.0 850.0,187.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,187.0 840.0,191.5 840.0,182.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="687.5,224.0 687.5,295.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="687.5,295.0 683.0,285.0 692.0,285.0" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="795.0,332.0 850.0,332.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,332.0 840.0,336.5 840.0,327.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="1065.0,332.0 1120.0,332.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="1120.0,332.0 1110.0,336.5 1110.0,327.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="957.5,369.0 957.5,477.0 795.5,477.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="795.5,477.0 805.5,472.5 805.5,481.5" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<polyline points="417.5,224.0 417.5,295.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,295.0 413.0,285.0 422.0,285.0" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="417.5,369.0 417.5,477.0 579.5,477.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="579.5,477.0 569.5,481.5 569.5,472.5" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="417.5,369.0 417.5,477.0 255.5,477.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="255.5,477.0 265.5,472.5 265.5,481.5" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="417.5,295.0 417.5,255.0 1227.5,255.0 1227.5,295.0" fill="none" stroke="#868e96" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="1227.5,295.0 1223.0,285.0 1232.0,285.0" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+<text x="1450" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1450" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1450" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1450" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 發文</text>
+<text x="1450" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. follow 別人（單向）</text>
+<text x="1450" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 看 follow 對象的貼文，新的在上</text>
+<text x="1450" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  4. 往下翻頁</text>
+<text x="1450" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  out of scope：讚、留言、隱私圈</text>
+<text x="1450" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1450" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  20 億使用者</text>
+<text x="1450" y="370" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  發文與讀 feed 都 &lt; 500ms</text>
+<text x="1450" y="389" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  eventual：慢一分鐘內送達可接受</text>
+<text x="1450" y="408" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  可用性優先於一致性</text>
+<text x="1450" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">寫時展開還是讀時現組</text>
+<text x="1450" y="491" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  讀時現組：follow 800 人 = 每次打開幾百次讀，</text>
+<text x="1450" y="508" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  熱路徑上做不完。</text>
+<text x="1450" y="526" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  寫時展開：每人存一份 200 則 id 的 feed，</text>
+<text x="1450" y="543" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  打開只要一次讀。2KB × 20 億人 ≈ 4TB。</text>
+<text x="1450" y="561" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  代價：9000 萬粉絲的帳號一發文 = 9000 萬筆寫入，</text>
+<text x="1450" y="578" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  一分鐘的預算超過一百倍。</text>
+<text x="1450" y="596" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="613" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">混合：大帳號插旗，發文不展開</text>
+<text x="1450" y="631" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  讀的時候拿自己那份，再現查有插旗的那幾個，</text>
+<text x="1450" y="648" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  照時間合併。人 follow 的大帳號只有個位數，</text>
+<text x="1450" y="666" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  現查的量有上限。</text>
+<text x="1450" y="733" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">爆紅貼文的快取形狀</text>
+<text x="1450" y="751" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  分片快取：同一則文落在同一片，熱點只是搬家。</text>
+<text x="1450" y="768" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  複製快取：每台都放整份熱門集合，LB 隨機分，</text>
+<text x="1450" y="786" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  一則文的讀量攤在 N 台上。</text>
+<text x="1450" y="803" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  代價是剛爆紅時 N 次回源，跟 N 份記憶體。</text>
+<text x="1450" y="873" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從瀏覽器往後走）</text>
+<text x="1450" y="891" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 → 1 → 2 → 3     發文先能落地</text>
+<text x="1450" y="908" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">4 → 5 → 6 → 7     展開走佇列，寫進每個 follower 那份</text>
+<text x="1450" y="926" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">8 → 9             讀那條最後畫：合併兩個來源再補本體</text>
+<text x="1450" y="1003" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1450" y="1021" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1450" y="1038" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1450" y="1056" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0 起：前端元件樹的順序</text>
+<text x="40" y="633" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">API</text>
+<text x="40" y="651" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===</text>
+<text x="40" y="668" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST /posts                        -&gt; postId</text>
+<text x="40" y="686" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">PUT  /users/{id}/follow            冪等</text>
+<text x="40" y="703" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /feed?pageSize=20&amp;cursor=ts   -&gt; posts + next</text>
+<text x="40" y="819" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="148" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;FeedPage&gt;  (F0)</text>
+<rect x="310" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;Composer&gt;  (F1)</text>
+<rect x="310" y="1020" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1062" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;FeedList&gt; 虛擬化  (F2)</text>
+<rect x="310" y="1165" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1207" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;PostCard&gt;  (F3)</text>
+<polyline points="255.0,912.0 310.0,912.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,912.0 300.0,916.5 300.0,907.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,949.0 417.5,1020.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1020.0 413.0,1010.0 422.0,1010.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,1094.0 417.5,1165.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1165.0 413.0,1155.0 422.0,1155.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<text x="1450" y="1124" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">State split</text>
+<text x="1450" y="1143" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===========</text>
+<text x="1450" y="1162" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">server state　feed 分頁，key 是 cursor</text>
+<text x="1450" y="1180" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">client state　composer 草稿、捲動位置</text>
+<text x="1450" y="1199" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">URL state　　 單篇 permalink；feed 本身刻意不進 URL，</text>
+<text x="1450" y="1218" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">　　　　　　　無限捲動的位置分享不了</text>
+<text x="1450" y="1237" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1256" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">發文可以 optimistic（對比 Uber 不行）</text>
+<text x="1450" y="1274" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  內容是使用者自己寫的，前端不用猜伺服器的決定。</text>
+<text x="1450" y="1293" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  立刻顯示、標 pending，失敗回滾但草稿留在輸入框。</text>
+<text x="1450" y="1312" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1330" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">新貼文不自動插入</text>
+<text x="1450" y="1349" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  頂部給「N 則新貼文」，讀者自己拉。</text>
+<text x="1450" y="1368" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  跟直播留言同一個理由：閱讀位置贏過新鮮度。</text>
+<text x="1450" y="1387" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  這顆提示進 aria-live="polite"。</text>
+<text x="1450" y="1406" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1424" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Perf</text>
+<text x="1450" y="1443" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  虛擬捲動：只有視窗附近在 DOM 裡</text>
+<text x="1450" y="1462" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  圖片先佔好長寬比，lazy-load 不推版面</text>
+<text x="1450" y="1480" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  從單篇回來還原捲動位置，不重抓第一頁</text>
+<text x="1450" y="1499" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1518" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="1450" y="1537" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  role="feed" 就是為這個 pattern 存在的</text>
+<text x="1450" y="1556" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  無限捲動要有實體「載入更多」鍵：</text>
+<text x="1450" y="1574" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  鍵盤使用者永遠捲不到觸發點</text>
+</svg>

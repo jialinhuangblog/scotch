@@ -1,0 +1,280 @@
+DROPBOX — MOCK INTERVIEW SCRIPT
+================================
+
+同一個候選人。這次的錯：讓 50GB 的檔案穿過自己的後端，
+被一道頻寬乘法當場糾正。改掉之後，後端瘦成一個發鑰匙的。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：把「檔案系統」剪成三個動作。同步才是這題的隱藏主角】
+--------------------------------------------------------------
+
+INTERVIEWER: Design Dropbox. 45 minutes.
+
+CANDIDATE: Three verbs hiding in that word: upload, download, sync. Are all
+three mine? Sync is the interesting one — I edit a file on my laptop and my
+phone should notice.
+
+INTERVIEWER: All three. Sharing with other users too. No online editing, no
+preview.
+
+CANDIDATE: File size ceiling?
+
+INTERVIEWER: 50GB.
+
+CANDIDATE: That number is going to make most of my decisions for me.
+
+> 開場先把題目切成動詞，然後要到 50GB 這個數字。後面每一幕都會回來引用它。
+
+
+SCENE 1 — Functional requirements
+【現在在做：四條規格，sync 寫成使用者看得見的行為】
+------------------------------------------------
+
+CANDIDATE:
+
+  1. Upload a file from any device
+  2. Download from any device
+  3. Share a file with another user
+  4. Sync: a change on one device shows up on the others without being asked
+
+  Out of scope: editing, preview, versioning
+
+INTERVIEWER: Fine.
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：規模跟優先序。這題的可用性排在一致性前面】
+----------------------------------------------------
+
+CANDIDATE: Priorities. Availability over consistency — if my two devices
+disagree for a minute, that's tolerable; not being able to reach my files is
+not. Files up to 50GB, and uploads over home networks will break mid-way, so
+resume isn't a nice-to-have, it's a requirement. Low latency everywhere, but
+"upload a 50GB file fast" mostly means "use all the bandwidth the user has".
+
+INTERVIEWER: Agreed. Sketch it.
+
+> NFR 只有三條但每條都有立場：AP 不是 CP、續傳是規格不是加分、
+> 大檔案的快等於吃滿頻寬。
+
+
+SCENE 3 — Entities and API
+【現在在做：資料模型。檔案內容跟 metadata 分家：bytes 歸 S3，紀錄歸 DB】
+------------------------------------------------------------
+
+CANDIDATE: The core split: file content is bytes, file metadata is a record.
+They live in different worlds — bytes go to blob storage, records go to a
+database. Entities:
+
+  FileMetadata: id, name, size, mimeType, owner, status, chunks[],
+                fingerprint
+  SharedFiles:  userId -> fileId, the ACL
+
+API, first draft:
+
+  POST /files/presigned-url          (metadata) -> PresignedUrl
+  GET  /files/:fileId/presigned-url  -> PresignedUrl
+  POST /files/:fileId/share          (users)
+  GET  /files/changes?since=         -> ChangeEvent[]
+
+INTERVIEWER: You're already returning presigned URLs in the first draft.
+Walk me through why. Pretend you hadn't thought of it.
+
+CANDIDATE: Okay, honest version. First instinct: client POSTs the file to my
+API, my API writes it to S3. Simple, and my server sees every byte, so I can
+scan it, validate it...
+
+Then the multiplication: 50GB per file, thousands of concurrent uploads,
+every byte flowing through my app servers twice — in from the client, out to
+S3. My fleet becomes a very expensive network cable. Plus API gateway payload
+limits are measured in megabytes, so the 50GB POST dies at the front door
+anyway.
+
+The fix is to get out of the way: my backend hands the client a presigned
+URL — a URL signed with my AWS credentials, valid for five minutes, scoped
+to one S3 key. The client uploads straight to S3. My backend only ever
+touches metadata.
+
+INTERVIEWER: What's the cost?
+
+CANDIDATE: The URL is a bearer token. Anyone holding it can use it, so the
+expiry has to be short, and I never log it. And I lose the ability to
+inspect bytes in-line — malware scanning becomes an async job on S3 events
+instead of an inline check.
+
+> 招牌錯誤這次用「假裝重想一次」的方式演出來。乘法一列（50GB × 併發 × 進出
+> 兩趟），proxy 方案自己死掉，不需要面試官開口。
+
+
+SCENE 4 — Chunking
+【現在在做：50GB 怎麼真的傳完。切塊、平行、斷點續傳】
+--------------------------------------------------
+
+CANDIDATE: A 50GB upload over home wifi will fail at hour two. If the unit
+of upload is the whole file, failing means starting over — unacceptable. So
+the unit has to be smaller: chunks, 5 to 10MB each.
+
+Client-side: compute a fingerprint of the whole file and of each chunk.
+Then S3 multipart upload: initiate, get an uploadId, request a presigned URL
+per chunk, upload chunks in parallel, S3 returns an ETag per part. The
+client reports progress; the metadata record keeps per-chunk status. When
+all parts are in, backend calls CompleteMultipartUpload and only then flips
+the file to "uploaded".
+
+Resume is now free: on retry, ask the backend which chunks are already
+there, upload only the missing ones.
+
+INTERVIEWER: Why fingerprints and not just chunk numbers?
+
+CANDIDATE: Numbers identify position; fingerprints identify content. Two
+things fall out of content identity. Dedup: two users upload the same file,
+same fingerprint, store it once. And integrity: the backend can verify what
+actually arrived matches what the client meant to send, not just that
+something arrived in slot 7.
+
+INTERVIEWER: And if the user edits one paragraph in a huge document?
+
+CANDIDATE: With fixed-size chunks, an insert shifts every byte after it —
+every downstream chunk changes, sync re-uploads almost everything. The fix
+is content-defined chunking: boundaries come from a rolling hash over the
+content, so an edit only disturbs the chunks near it. Small edit, small
+sync. That's the difference between a file uploader and a sync product.
+
+> chunk 這幕層次給得順：先是「會斷所以要切」，然後「切了順便拿到續傳跟
+> 去重」，最後 CDC 把「同步產品」跟「上傳工具」分開。一層一層都是回答
+> 前一個問題。
+
+
+SCENE 5 — Download and sharing
+【現在在做：下載走 CDN，分享是一張表不是一個系統】
+------------------------------------------------
+
+CANDIDATE: Download mirrors upload: ask for a presigned URL, fetch straight
+from storage. One improvement — front it with a CDN. Files are immutable
+blobs (edits create new chunks), which is the best possible CDN content.
+Signed CDN URLs keep access control.
+
+Sharing is deliberately boring: a SharedFiles table, userId to fileId. To
+list "shared with me", query by userId. The table is the ACL — before
+issuing any presigned URL, check it. All the security lives at the moment
+of issuing URLs, which is the one door everything passes through.
+
+INTERVIEWER: Fine. Now the part you called the hidden protagonist.
+
+> 分享做小是刻意的。門只有一扇（發 URL 的那一刻查權限），系統就不需要
+> 第二套存取控制。
+
+
+SCENE 6 — Sync
+【現在在做：兩個方向的同步。推是主線，輪詢是保底】
+------------------------------------------------
+
+CANDIDATE: Two directions.
+
+Local to remote: the desktop agent watches the filesystem — FSEvents on Mac,
+inotify on Linux. A change enqueues an upload of the affected chunks.
+Conflicts: last write wins. Two devices editing the same file offline is
+rare enough that the simple rule beats a merge system; the loser's version
+can be kept as a conflict copy.
+
+Remote to local: the device needs to hear about changes. Primary path: a
+WebSocket, the server pushes change events. But connections drop, laptops
+sleep, notifications get lost. So under it, a safety net: every few minutes,
+poll GET /files/changes?since=lastCursor. The push makes sync feel instant;
+the poll guarantees it eventually happens even if every push was missed.
+
+INTERVIEWER: Why not just poll aggressively and skip the WebSocket?
+
+CANDIDATE: Poll interval is the staleness floor — aggressive polling from
+millions of idle clients is almost all wasted requests, and it still feels
+slower than push. Push costs one idle connection and makes the common case
+instant. The pair is cheaper than either alone at the same freshness.
+
+> 推跟輪詢不是二選一，是一個管體感一個管保證。跟 Ticketmaster 的
+> 「鎖管體驗、資料庫管真相」同一個形狀：快的那條可以掉，慢的那條兜住。
+
+
+SCENE 7 — Frontend lens
+【現在在做：前端這半場。上傳管理器是這題前端的主角】
+--------------------------------------------------
+
+CANDIDATE: The frontend half. Components: <DriveApp> → <FileTable>,
+<UploadTray>, <ShareDialog>.
+
+State split. Server state: the file list, and per-upload chunk progress —
+that second one is unusual, the server genuinely knows which chunks arrived.
+Client state: the queue of files dropped but not yet uploading, selection.
+URL state: the folder path, so a pasted link opens the same folder.
+
+The upload tray is the real product. A file is a row of chunk states, so
+the progress bar is computed, not animated guesswork. A failed chunk retries
+alone — re-uploading the whole file is the one unforgivable behavior. Close
+the tab, come back: ask the backend which chunks exist, continue. That's
+the resumable flow surfaced in UI.
+
+Concurrency: parallel chunk uploads, but capped around three or four. It's
+tempting to open twenty — that saturates the user's uplink, and their video
+call dies. The browser is a guest on the user's network.
+
+Optimistic UI: the new file appears in the list immediately, marked
+uploading; failure marks the row red with a retry, it doesn't vanish.
+Delete removes the row instantly, sends in the background, and restores the
+row with an explanation on failure.
+
+a11y: progress needs text, "42%, 3 minutes left", not only a colored bar.
+Drag-and-drop always has a "choose files" button twin — drag targets don't
+exist for keyboard users.
+
+Perf: virtualize the big folder list, lazy-load thumbnails.
+
+INTERVIEWER: What breaks if two tabs upload the same file?
+
+CANDIDATE: Same fingerprint, so the backend sees one logical upload — chunk
+status arbitrates. Worst case they upload the same chunk twice; S3 multipart
+overwrites by part number, so the part is simply stored once, whichever
+upload landed last. Wasteful, not wrong.
+
+> 前端段的骨架跟前兩題一樣：元件樹、三種 state、樂觀更新、a11y、效能。
+> 這題的亮點是「進度條是算出來的」跟「併發上限是替使用者的網路著想」。
+
+
+SCENE 8 — Wrapping up
+【現在在做：收尾。點名沒講的，並說出哪一塊其實最難】
+--------------------------------------------------
+
+CANDIDATE: Skipped, deliberately: encryption details beyond "TLS in transit,
+SSE at rest", quota enforcement, and versioning. If you pull the thread,
+versioning is the hardest of the three — content-defined chunks plus a
+metadata history gets you most of it, but garbage-collecting unreferenced
+chunks safely is a real distributed systems problem.
+
+INTERVIEWER: Noted. That's time.
+
+
+跟 Ticketmaster 的對照
+==============================
+
+Ticketmaster                        Dropbox
+--------------------------------    --------------------------------
+最慢的一環：打信用卡的人            最慢的一環：50GB 的檔案本體
+把它移出交易（Redis TTL 鎖）        把它移出後端（presigned 直傳）
+資料庫只做最後一次短交易            後端只碰 metadata
+Redis 掛了退款救場                  推播掉了輪詢救場
+強一致守一個欄位                    最終一致守整個檔案樹
+
+兩題的核心動作相同：找出最慢的那一環，把它請出關鍵路徑，
+然後留一條慢而可靠的路線在後面接著。
+
+
+規則（延續上一題那份，這次多一條）
+================================
+
+1. 一次只給一層，等他問「這樣夠嗎」再給下一層。
+2. 講錯就當場改口，「想一下，其實不對」。
+3. 算出荒謬的數字先記著，走到那一步再拿出來解。
+4. 被問到「為什麼要這個元件」的時候，答案應該是前一個問題，不是它的功能。
+5. 保證跟體驗分開修。體驗壞掉可以退款道歉，保證壞掉是新聞事件。
+6. 快的路徑負責體感，慢的路徑負責保證，兩條都要在。
+   只有快的會漏，只有慢的會被嫌。

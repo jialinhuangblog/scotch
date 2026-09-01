@@ -1,0 +1,350 @@
+DISTRIBUTED RATE LIMITER — MOCK INTERVIEW SCRIPT
+=================================================
+
+這題跟前面三題不一樣：它不是一個產品，是一個放在別人前面的元件。
+而且前端在這題是被 rate limit 的那一方，那一段是最能拉開差距的地方。
+對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：先確認 rate limiter 擺在哪裡，因為擺的位置決定它拿得到什麼資訊】
+---------------------------------------------------------------------
+
+INTERVIEWER: Design a distributed rate limiter. 45 minutes.
+
+CANDIDATE: Before anything — where does this sit? Inside each application
+process, as its own service, or at the API gateway?
+
+INTERVIEWER: You tell me the trade, then pick.
+
+CANDIDATE: In-process is the fastest, it's just memory. But every instance has
+its own counter, so with fifty app servers the real limit is fifty times what
+you configured. That fails the word "distributed" in the question.
+
+A separate service gives one global view, but now every request makes an extra
+network hop to it, and if it's down the question of what happens is suddenly
+about everyone's traffic.
+
+At the gateway, the check happens where requests already pass through, so no
+extra hop, and state can live in a shared store. It also means rejected traffic
+never touches the application at all.
+
+I'd put it at the gateway.
+
+INTERVIEWER: Agreed.
+
+> 這一問是這題的正確開場。位置決定了後面所有事：能不能看到 user id、要不要多一
+> 跳、掛掉的時候影響誰。先跳去講演算法的候選人會在半路發現這些沒定。
+
+CANDIDATE: Second question — who are we limiting? Logged-in users, IP addresses,
+API keys?
+
+INTERVIEWER: All three, potentially at once.
+
+CANDIDATE: So the rules are layered, and one request can be checked several
+times. That changes the cost per request — it's not one lookup, it's three or
+four.
+
+INTERVIEWER: Right.
+
+
+SCENE 1 — Functional requirements
+【現在在做：三條規格，包含被拒絕時要回什麼】
+------------------------------------------------
+
+CANDIDATE:
+
+  1. Identify the caller by user ID, IP, or API key
+  2. Apply configurable rules — e.g. 100 requests per minute per user — and
+     allow or reject
+  3. On reject, return 429 with headers saying how much is left and when it
+     resets
+
+  Out of scope: analytics on the limit data, long-term storage of it
+
+INTERVIEWER: Why is the third one a requirement and not a detail?
+
+CANDIDATE: Because without it the client has no way to behave well. A 429 with
+no information leaves them guessing, and the usual guess is to retry
+immediately, which makes the situation worse. The headers are what let a
+well-behaved client back off correctly, so they're part of what the system does,
+not decoration.
+
+> 把「回應格式」提到 FR 層，並且用「不然客戶端只能亂猜」解釋，比列在細節裡好。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：算一台 Redis 夠不夠，這個數字直接決定要不要分片】
+-----------------------------------------------------------------
+
+CANDIDATE: Traffic?
+
+INTERVIEWER: A social platform. 100 million daily active users.
+
+CANDIDATE: Let's get to requests per second. 100M users, say 50 requests each
+per day — that's 5 billion a day, about 58,000 a second on average. Peak maybe
+5x, so call it 300,000. I'll design for 1 million to leave room.
+
+Now the important part: what does one check cost? A single Redis instance does
+somewhere around 100,000 operations a second. If every request needs one Redis
+round trip, one instance covers a tenth of the target.
+
+So this needs sharding, and I know that before I've drawn anything.
+
+INTERVIEWER: And latency?
+
+CANDIDATE: This runs on every request to the whole platform, so it has to be
+invisible. Under 10 milliseconds of added latency. That rules out anything
+clever — no consensus, no cross-region coordination on the hot path.
+
+CANDIDATE:
+
+  - ~1 million requests/sec to check
+  - Under 10ms added per request
+  - High availability; eventual consistency across nodes is acceptable
+  - Being slightly wrong at the boundary is fine; being slow is not
+
+> 「一個 Redis 一秒十萬次，目標一百萬，所以要十片」這個推導只有兩句話，但它把
+> 分片從「大家都這樣做」變成一個算出來的結論。
+
+
+SCENE 3 — Algorithm
+【現在在做：四種算法，選一個，理由要具體】
+---------------------------------------------
+
+INTERVIEWER: How do you count?
+
+CANDIDATE: Four options, and they differ in what they get wrong.
+
+Fixed window — a counter per minute. Simplest thing that works. The problem is
+the boundary: someone sends 100 requests at 10:00:59 and another 100 at
+10:01:00. Both windows are legal, but the server saw 200 in one second. The
+limit says 100 per minute and it just took 200.
+
+Sliding log — store every request's timestamp and count the ones in the last
+minute. Exactly correct. Also stores a timestamp per request per user, which at
+this traffic is a lot of memory for something that gets thrown away.
+
+Sliding window counter — keep the current and previous window and weight them
+by how far into the current window we are. Cheap, close enough, and it smooths
+the boundary. But it assumes traffic was evenly spread through the previous
+window, which for bursty clients isn't true.
+
+Token bucket — a bucket refills at a steady rate, each request takes a token.
+Two numbers per client: how many tokens, when it last refilled.
+
+I'd take token bucket. Not just for the memory, but because of what it allows: a
+client that's been quiet accumulates tokens and can spend them in a burst. That's
+usually what you actually want — a person who opens the app after an hour away
+fires off a dozen requests at once and shouldn't be punished for it.
+
+INTERVIEWER: Good.
+
+> 四個選項各講它「會犯什麼錯」，然後選的理由是產品行為（安靜過的人可以突然多用
+> 一點），不是「效能比較好」。
+
+
+SCENE 4 — The atomicity problem
+【現在在做：被追問到底，這是這題唯一的正確性陷阱】
+-----------------------------------------------------
+
+CANDIDATE: State per client in Redis: a hash with token count and last refill
+time.
+
+  HMGET  bucket:user:123   tokens  last_refill
+  → compute how many tokens have accrued since last_refill
+  → if tokens >= 1: decrement, write back, allow
+  → else: reject
+
+INTERVIEWER: Two requests from the same user arrive at the same millisecond, on
+two different gateways. Walk me through it.
+
+CANDIDATE: Both read. Both see 5 tokens. Both compute 4. Both write 4. Two
+requests were allowed and only one token was deducted.
+
+At 1 million requests a second this isn't a rare edge case, it's constant. And
+it's worst exactly for the clients you most want to limit, because they're the
+ones sending concurrent requests.
+
+INTERVIEWER: So?
+
+CANDIDATE: The read, the arithmetic, and the write have to be one operation from
+Redis's point of view. A Lua script does that — Redis runs it to completion
+before it handles anything else, so no second request can slip between the read
+and the write.
+
+  -- one round trip, nothing interleaves
+  local tokens = redis.call('HGET', KEYS[1], 'tokens')
+  ...refill math...
+  if tokens >= 1 then redis.call('HSET', ...) return 1 else return 0 end
+
+It also cuts the round trips from two to one, which helps the 10ms budget.
+
+INTERVIEWER: Could you use MULTI/EXEC instead?
+
+CANDIDATE: MULTI/EXEC batches commands but it can't branch on what it read — the
+decision "do I have enough tokens" happens on the client, which puts us back
+where we started. WATCH plus retry would work, but under contention it retries a
+lot, and contention is exactly our case.
+
+> 這一整段是這題的心臟，而且注意結構：面試官給一個具體場景（同一毫秒、兩個
+> gateway），候選人把錯誤的結果算出來（放行兩次只扣一次），然後才給解法。
+> 先講 Lua 再解釋為什麼需要它，說服力差很多。
+
+
+SCENE 5 — Scaling and failure
+【現在在做：分片怎麼切，然後掛掉的時候放行還是拒絕】
+-------------------------------------------------------
+
+CANDIDATE: Sharding: consistent hashing on the client identifier. All of user
+123's state lives on one shard, so the check is still a single-key operation —
+no cross-shard coordination. Ten shards at 100k ops each covers the million.
+
+Every gateway hashes with the same function, so they all route to the same shard
+for the same client without talking to each other.
+
+INTERVIEWER: A shard goes down.
+
+CANDIDATE: Each shard has a replica with automatic failover. But there's a window
+during promotion where the check can't happen, and the real question is what the
+gateway does in that window.
+
+Fail-open: let everything through. Fail-closed: reject everything.
+
+INTERVIEWER: Pick one.
+
+CANDIDATE: Fail-closed, and the reason is about timing. Rate limiter trouble and
+traffic spikes are correlated — the limiter is most likely to be struggling
+exactly when something is hammering the platform. Failing open at that moment
+sends the full unfiltered flood to the services behind it, which is the thing
+the limiter existed to prevent.
+
+The counter-argument is real: a limiter bug becomes a total outage, and you've
+turned a protective component into a single point of failure for the whole
+platform. So fail-closed needs a manual override — a flag that flips the whole
+fleet to open, for the case where the limiter itself is the incident.
+
+INTERVIEWER: What if this were a payments API instead of a social platform?
+
+CANDIDATE: Then I'd think harder about it. Rejecting a legitimate payment has a
+cost that a rejected feed refresh doesn't. I might fail open for authenticated
+paying customers and fail closed for anonymous traffic — the identity is already
+in the request, so the gateway can make that split.
+
+> 選 fail-closed 之後主動講出它的代價，再補一個手動開關，最後在面試官換題目的
+> 時候承認答案會變。這比「fail-closed 比較安全」完整得多。
+
+
+SCENE 6 — Rules that change
+【現在在做：控制面。這一段常被跳過，但它是真的會半夜出事的地方】
+--------------------------------------------------------------------
+
+INTERVIEWER: Someone needs to change a limit right now, at 3am, because of an
+incident.
+
+CANDIDATE: So the rules can't be in the deploy. They live in a config store and
+the gateways read them.
+
+Polling is the simple version: every gateway refreshes its local copy every 30
+seconds. Cheap, no connection to maintain, and 30 seconds of staleness is
+normally fine.
+
+At 3am during an incident, 30 seconds is not fine. So for urgent changes I'd
+want a push path — the gateways watch the config in something like ZooKeeper or
+etcd and get told immediately.
+
+I'd build polling first and add push when there's a real reason. The failure mode
+of polling is "slightly late"; the failure mode of a broken push system is
+"gateways silently running the wrong rules," which is harder to notice.
+
+> 「先做輪詢，之後才加推播」加上兩種失效模式的比較。這種「先做哪個」的判斷是
+> senior 的訊號，比一次做到最完整的方案更好。
+
+
+SCENE 7 — The response
+【現在在做：回應格式，順便接到前端那一段】
+--------------------------------------------
+
+CANDIDATE:
+
+  HTTP 429 Too Many Requests
+  X-RateLimit-Limit: 100
+  X-RateLimit-Remaining: 0
+  X-RateLimit-Reset: 1723000000
+  Retry-After: 12
+
+Remaining goes on every response, not just the rejections, so a client can see
+itself getting close before it hits the wall.
+
+
+SCENE 8 — Frontend lens
+【現在在做：這題前端是被 rate limit 的那一方，這一段是最能拉開差距的】
+-----------------------------------------------------------
+
+CANDIDATE: This one is unusual because the client is the thing being limited, so
+I want to design that side too.
+
+When a 429 comes back, honour Retry-After. Don't run your own exponential
+backoff on top of a server that just told you exactly how long to wait. Backoff
+is the fallback for when the header isn't there — and then it needs jitter,
+because without it every client that got rejected in the same second retries in
+the same second, and you've built a small denial of service against yourself.
+
+Don't wait for the wall. X-RateLimit-Remaining comes back on every response, so
+when it drops into single digits the UI can say so — grey the button, show
+what's left and when it resets. Telling someone before they act beats telling
+them after.
+
+Then, spend less. Three components on one page each fetching the same endpoint
+is three requests against the same quota. A query cache that dedupes in-flight
+requests by key collapses that to one, and it's a library-level fix, not a
+per-component discipline. Same with a search box that fires per keystroke —
+debounce, or every letter costs quota.
+
+Optimistic updates need a specific rollback here. The write got rejected, so the
+UI has to revert — and the message has to say it was rate limited, not that the
+action failed. Those lead to different user behaviour: one means wait, the other
+means try something else.
+
+And accessibility, which flips compared to the live comments problem. There, new
+messages had to be polite so they wouldn't interrupt. Here, being rate limited is
+a blocking error that stops what the person was doing, so it belongs in an
+assertive live region — it should interrupt. But the countdown timer next to it
+has to be aria-live="off", otherwise a screen reader announces every second.
+
+INTERVIEWER: The polite versus assertive contrast is a good one.
+
+> 「同一個 aria-live 屬性，在直播留言選 polite，在 429 錯誤選 assertive」這個對照
+> 證明的是他理解那個屬性在解什麼問題，不是記得該填什麼值。
+
+
+SCENE 9 — Wrapping up
+【現在在做：三個沒展開的】
+-----------------------------
+
+CANDIDATE: Three things I'd come back to.
+
+Abusive traffic versus legitimate bursts. Everything I built treats them the
+same. Repeated violations should probably graduate to a blocklist so we stop
+paying for the check at all, and that's a different system.
+
+Multi-region. I assumed one region. Across regions you either accept that limits
+are per-region, or you coordinate and lose the latency budget. I'd take
+per-region and document it.
+
+And the SDK side. If we ship a client library, it can hold its own token bucket
+and refuse to send requests it knows will be rejected. That saves both sides the
+round trip, and it's the only version of rate limiting that costs nothing.
+
+INTERVIEWER: That's time.
+
+
+跟前三題的差別
+================
+
+前三題都是產品，這題是元件：它沒有自己的使用者，它站在別人前面。
+所以它的 requirements 長得不一樣 —— 沒有 FR 在講「使用者做得到什麼」，
+只有「它對經過的請求做什麼」。
+
+一致性也反過來。前三題是「有一條路需要強一致」，這題明說可以近似：
+邊界上算錯幾次沒關係，慢 10ms 才是問題。這是唯一一題把延遲排在正確性前面的。

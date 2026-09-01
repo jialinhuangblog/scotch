@@ -1,0 +1,292 @@
+FB NEWS FEED — MOCK INTERVIEW SCRIPT
+=====================================
+
+這題的瓶頸是寫入放大：一則貼文可能要複製成九千萬份。跟 FB Live Comments 正好
+成對，那題是讀端出口頻寬被放大，這題是寫端。整題圍繞一個選擇：feed 是發文的
+時候先算好，還是打開的時候現組。對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：兩個問題，一個砍掉排序，一個換來非同步的權利】
+------------------------------------------------------------
+INTERVIEWER: Design the Facebook news feed. 45 minutes.
+
+CANDIDATE: First: is the feed ranked, or reverse chronological?
+
+INTERVIEWER: Reverse chronological. No ranking.
+
+CANDIDATE: Good, that removes the ML system and makes this a pure
+distribution problem: get the right posts in front of the right followers,
+newest first.
+
+Second, and this one decides the architecture: when I post, how quickly
+must my followers see it? Is a minute of delay acceptable?
+
+INTERVIEWER: A minute is fine. Why does that decide anything?
+
+CANDIDATE: Because delivering a post to followers is work proportional to
+the follower count, and one minute of allowance means that work can happen
+asynchronously, on a queue, after the post call has already returned. If
+the answer were "instantly," the write path would have to do that work
+inline and the whole design gets harder. That one minute is the budget
+everything downstream spends.
+
+> 第二個問題是這題最值錢的一問：拿到「慢一分鐘沒關係」，fan-out 才能搬到佇列
+> 上做。沒問就直接畫佇列的人，是運氣好而不是設計對。
+
+
+SCENE 1 — Functional requirements
+【現在在做：四條規格，follow 是單向的】
+-----------------------------------------
+CANDIDATE:
+
+  1. Create posts
+  2. Follow other users, one-directional
+  3. View a feed of the people I follow, newest first
+  4. Page through that feed
+
+  Out of scope: likes, comments, privacy circles, media processing
+
+INTERVIEWER: Why call out one-directional?
+
+CANDIDATE: Because it makes the graph asymmetric, and the asymmetry is the
+problem. Friendship caps both sides at the same number. Follow lets one
+account have ninety million followers while following twelve people, and
+that account is the reason half of this interview exists.
+
+> 「單向」不是背 spec，是指出不對稱性是整題困難的來源。有九千萬粉絲的帳號在
+> 這裡先埋好，SCENE 4 就不會像是臨時想到。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：量級，跟一句「可用性優先於一致性」的落地翻譯】
+------------------------------------------------------------
+CANDIDATE:
+
+  - 2 billion users
+  - Posting and feed loading both under 500ms
+  - Eventually consistent, up to a minute of staleness on delivery
+  - Availability over consistency
+
+That last line translated: if parts of the system disagree for a while, keep
+serving. A feed that's missing one recent post is a working product. A feed
+that returns an error is not. Nothing here has the "one driver, one ride"
+shape from the Uber problem, there is no row two people are fighting over,
+so nothing needs to be strongly consistent.
+
+> 每題都該把 CAP 的選擇翻成一句產品語言。這題連例外都沒有：Uber 有派單那條
+> 強一致的路，Tinder 有配對，這題整套都可以 eventual，值得明說。
+
+
+SCENE 3 — Data model and API
+【現在在做：三張表兩個方向的查詢，跟一個用 timestamp 當游標的分頁】
+---------------------------------------------------------------------
+CANDIDATE: Three entities: User, Follow, Post. Follow is a row, follower
+and followee. Posts partition by author.
+
+The Follow table needs both directions. "Who do I follow" builds my feed.
+"Who follows me" delivers my post. One table with the partition key on the
+follower side, plus a global secondary index keyed the other way. Same
+rows, two query paths.
+
+API:
+
+  POST /posts                          -> postId
+  PUT  /users/{id}/follow              idempotent, follow twice = follow once
+  GET  /feed?pageSize=20&cursor={ts}   -> posts + next cursor
+
+INTERVIEWER: Why a timestamp cursor instead of page numbers?
+
+CANDIDATE: Because the feed shifts under the reader. With offset paging, if
+three new posts arrive while someone reads page one, page two starts with
+three posts they already saw. A cursor says "older than this timestamp,"
+which stays true no matter how much arrives on top. Offset paging on a
+moving list is how you get duplicate posts in every social app's bug
+tracker.
+
+> 游標分頁的理由用一個具體 bug 講完：新文插進來，offset 往下推，第二頁開頭
+> 重複三則。這比「cursor 效能比較好」有內容，而且它是真的，offset 在這裡
+> 首先是正確性問題，其次才是效能問題。
+
+
+SCENE 4 — Fan-out
+【現在在做：這題的心臟。寫時展開、讀時現組，最後混合】
+--------------------------------------------------------
+CANDIDATE: Now the center. When someone opens their feed, where do the
+posts come from?
+
+Option one, build at read time: query who I follow, fetch recent posts from
+each, merge, sort. I follow 800 people, that's hundreds of partition reads
+on the hot path, for every feed load, for 2 billion users. The read fans
+out and the 500ms budget dies.
+
+Option two, build at write time: keep a precomputed feed per user, a list
+of the 200 newest post IDs. Opening the feed is now one read. Storage: 200
+IDs is about 2KB, times 2 billion users is 4 terabytes, large but flat and
+cheap. When someone posts, look up their followers via the GSI and prepend
+the post ID to each follower's list, through a queue, inside our one-minute
+budget.
+
+INTERVIEWER: And then someone with 90 million followers posts.
+
+CANDIDATE: That's 90 million list-writes for one post. At even 10k writes a
+second that's over two hours, the one-minute budget is gone a hundred times
+over, and the queue is jammed for everyone else. Write-time fan-out is the
+right default and it breaks precisely at the accounts people care most
+about.
+
+So: hybrid. Accounts over a follower threshold get flagged, their posts
+skip fan-out entirely. Reading a feed becomes: take my precomputed list,
+separately fetch recent posts from the flagged accounts I follow, merge by
+timestamp. Of the 800 accounts I follow, only a handful are huge, so the
+read-time work is bounded by that handful.
+
+INTERVIEWER: Where's the threshold?
+
+CANDIDATE: It's a dial, not a constant. The cost curves cross where fan-out
+write time exceeds the staleness budget: with 10k queue writes a second,
+a minute buys 600k followers, so the flag goes somewhere below that. The
+real answer is to measure both paths in production and move the dial; the
+design's job is that moving it is a flag flip, not a migration.
+
+> 面試官只問了一句 90M，整段結構是候選人自己搭的：先讓兩個純方案各自具體地
+> 失敗（幾百次讀 vs 兩小時寫），混合才有立足點。門檻那句「是旋鈕不是常數」
+> 加上 600k 的推導，是 senior 跟背題的分界線。
+
+
+SCENE 5 — The write path in detail
+【現在在做：佇列跟 worker，冪等跟截斷這兩個細節】
+---------------------------------------------------
+CANDIDATE: The fan-out machinery: post lands in the Posts table, a message
+goes onto a queue, workers consume it, each message says "post X, deliver
+to followers of author Y." Workers page through the follower list via the
+GSI and prepend to each precomputed feed.
+
+Two details that matter more than they look.
+
+Idempotent prepend: workers retry, so delivering the same post twice must
+leave one copy, not two. A conditional "add if absent" on the list, or
+dedup by post ID at read time. Retry plus non-idempotent writes equals
+duplicate posts in feeds, which users screenshot.
+
+Truncation: the list holds 200. Prepend then trim. Without the trim, the
+precomputed feed of anyone following active accounts grows without bound,
+and the 4TB estimate quietly stops being true.
+
+INTERVIEWER: Someone opens their feed mid-fan-out.
+
+CANDIDATE: They see the feed without the newest post, and it arrives within
+the minute. That's exactly the staleness we negotiated in scene zero, the
+NFR isn't decoration, it's what makes this answer acceptable.
+
+> 冪等跟截斷是這種佇列設計的例行檢查：重試安全嗎、資料會不會無限長大。兩個
+> 都用一句「不做會怎樣」收尾。最後一答把 SCENE 0 談好的預算拿回來用，前後
+> 呼應是排練不出來的熟。
+
+
+SCENE 6 — The viral post
+【現在在做：讀路徑的熱點：所有人的 feed 都指向同一則貼文】
+------------------------------------------------------------
+CANDIDATE: The precomputed feed stores IDs, so every feed load hydrates
+them into actual posts. Normally that spreads across the Posts table
+evenly. Then one post goes viral, and millions of feeds all contain the
+same ID, all hydrating against the same partition. Hot key.
+
+A cache in front, obviously, but the shape of the cache matters. A sharded
+cache puts each post on exactly one node, so the viral post's traffic all
+lands on one shard, we've moved the hot key, not solved it.
+
+Instead: a small replicated cache tier, every node holds the hot set, the
+load balancer spreads requests across all of them. A viral post's reads
+divide across N nodes instead of concentrating. The price is N cache
+misses when a post first turns hot, and N copies in memory, fine, because
+the hot set is small, it's the head of the distribution by definition.
+
+> 「分片是把熱點搬家，複製才是把熱點攤開」，一句話講完 sharded 對 replicated
+> 的差別。這跟 Tinder 的分片邏輯相反方向，那題要的是同一組人落同一片，這題
+> 要的是同一則文散到每一片，對比記起來兩題都穩。
+
+
+SCENE 7 — Frontend lens
+【現在在做：無限捲動的 feed 是前端的主場，這段的內容比後端還密】
+------------------------------------------------------------------
+CANDIDATE: This is the richest frontend in the whole set, so I'll take
+it properly.
+
+Component tree: a FeedPage owning a Composer and a virtualized FeedList of
+PostCards. Virtualization is not optional at feed scale: a morning of
+scrolling is thousands of posts, and without windowing the DOM grows until
+scrolling stutters. Only the viewport neighborhood exists in the DOM;
+images use fixed aspect-ratio placeholders so lazy-loading them doesn't
+shift the layout under the reader's thumb.
+
+State split: server state is the feed pages, keyed by cursor, which pairs
+naturally with infinite scroll, each page request is just the next cursor.
+Client state is the composer draft and scroll position. URL state is the
+permalink to a single post; the feed itself deliberately has no URL, an
+infinite scroll position isn't shareable, and pretending it is breaks the
+back button.
+
+Posting is where this differs from Uber: optimistic works here. The content
+is authored by the user, the client isn't guessing a server decision, so
+the new post renders in my own feed immediately, marked pending. On
+failure, roll it back but keep the draft in the composer, losing a
+written post to a network blip is the single most rage-inducing failure a
+feed can have.
+
+New posts while reading: don't insert them. A "3 new posts" pill at the
+top, announced politely to screen readers, and the reader pulls when
+ready. Auto-inserting into a list someone is reading yanks the content
+out from under them, same reasoning as the live comments problem, the
+reader's position wins over freshness.
+
+Coming back from a permalink: restore the scroll position from the
+in-memory feed, don't refetch page one. Losing your place after tapping
+into a post is the mobile-web failure everyone knows; keeping the feed
+cache warm across that navigation is the fix.
+
+INTERVIEWER: Accessibility beyond the pill?
+
+CANDIDATE: The feed role exists in ARIA for exactly this pattern, it tells
+assistive tech "this list mutates," and browsing mode navigates it post by
+post. And infinite scroll needs a real "load more" button as the keyboard
+fallback, scroll-triggered loading assumes a wheel or a thumb, a keyboard
+user tabbing through posts never fires it.
+
+> 這段每一條都有「不做會發生什麼」：DOM 長到捲不動、圖片把版面往下推、
+> 回上一頁跳回頂端、鍵盤使用者永遠載不了下一頁。前端深度不在列 checklist，
+> 在每個選擇都接著一個具體的失敗畫面。
+
+
+SCENE 8 — Wrapping up
+【現在在做：三個沒展開的】
+-----------------------------
+CANDIDATE: Three things I'd extend.
+
+Ranking. Reverse-chron made precompute easy because prepend preserves
+order. A ranked feed can't prepend, scores change after delivery, so the
+precomputed list becomes candidates and a ranker runs at read time. The
+hybrid structure survives, the merge gets smarter.
+
+Notifications. Same fan-out machinery, same celebrity problem, different
+delivery target. The queue and worker design here is reusable almost
+verbatim.
+
+Privacy. Blocked users, restricted posts. The clean enforcement point is
+hydration, IDs in a precomputed list are harmless until they turn into
+content, so filtering at hydration time means a block takes effect
+immediately even for posts already fanned out.
+
+INTERVIEWER: That's time.
+
+
+跟其他題的差別
+================
+
+FB Live Comments 跟這題是同一個問題的兩面：那題一則留言被兩百萬個正在看的
+人讀，放大發生在出口頻寬；這題一則貼文被寫進九千萬份 feed，放大發生在寫入
+次數。兩題的解法也對稱，那邊用 pub/sub 把留言推進每一條 SSE 連線，這邊用
+佇列把寫慢慢做完。
+
+Uber 的鎖、Tinder 的配對、Bitly 的唯一碼都有一條「不能錯」的窄路，這題沒有，
+從頭到尾 eventual，難度全部集中在規模而不是正確性。
