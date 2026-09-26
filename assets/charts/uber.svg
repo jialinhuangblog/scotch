@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1935" height="1279" viewBox="0 0 1935 1279">
+<rect x="0" y="0" width="1935" height="1279" fill="#ffffff"/>
+<text x="40" y="67" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Uber</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(0) Rider Client</text>
+<rect x="310" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(1) API Gateway</text>
+<rect x="580" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(2) Ride Service</text>
+<text x="688" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">估價 / 建立行程</text>
+<rect x="850" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#868e96" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="958" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(3) 第三方地圖 API</text>
+<text x="958" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">距離與 ETA</text>
+<rect x="580" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="688" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(4) Rides DB</text>
+<text x="688" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">強一致，一司機一單</text>
+<rect x="40" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="482" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(5) Driver Client</text>
+<rect x="310" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#1971c2" stroke-width="2"/>
+<text x="418" y="482" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(6) Location Service</text>
+<rect x="580" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="688" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(7) Redis geohash</text>
+<text x="688" y="492" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">GEOADD / GEOSEARCH</text>
+<rect x="310" y="585" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="618" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(8) Kafka 叫車佇列</text>
+<text x="418" y="637" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">依區域分 partition</text>
+<rect x="580" y="585" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="627" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(9) Ride Matching</text>
+<rect x="850" y="585" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="958" y="618" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(10) Redis 分散式鎖</text>
+<text x="958" y="637" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">TTL 10 秒</text>
+<rect x="580" y="730" width="215" height="74" rx="10" fill="#ffffff" stroke="#0c8599" stroke-width="2"/>
+<text x="688" y="763" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(11) Temporal workflow</text>
+<text x="688" y="782" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">司機沒回應就換下一位</text>
+<rect x="850" y="730" width="215" height="74" rx="10" fill="#ffffff" stroke="#0c8599" stroke-width="2"/>
+<text x="958" y="763" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(12) Notification</text>
+<text x="958" y="782" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">APNs / FCM → (5)</text>
+<polyline points="255.0,187.0 310.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,187.0 300.0,191.5 300.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,187.0 580.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,187.0 570.0,191.5 570.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="795.0,187.0 850.0,187.0" fill="none" stroke="#868e96" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="850.0,187.0 840.0,191.5 840.0,182.5" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+<polyline points="687.5,224.0 687.5,295.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="687.5,295.0 683.0,285.0 692.0,285.0" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="255.0,477.0 310.0,477.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,477.0 300.0,481.5 300.0,472.5" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="525.0,477.0 580.0,477.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,477.0 570.0,481.5 570.0,472.5" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="310.0,187.0 282.0,187.0 282.0,622.0 310.0,622.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,622.0 300.0,626.5 300.0,617.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,622.0 580.0,622.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,622.0 570.0,626.5 570.0,617.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="687.5,585.0 687.5,514.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="687.5,514.0 692.0,524.0 683.0,524.0" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="795.0,622.0 850.0,622.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,622.0 840.0,626.5 840.0,617.5" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="687.5,659.0 687.5,730.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="687.5,730.0 683.0,720.0 692.0,720.0" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<polyline points="795.0,767.0 850.0,767.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,767.0 840.0,771.5 840.0,762.5" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<text x="1450" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1450" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1450" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1450" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 乘客輸入起訖點，拿到估價</text>
+<text x="1450" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. 依估價叫車</text>
+<text x="1450" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 系統媒合附近可接單的司機</text>
+<text x="1450" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  4. 司機接受或拒絕，導航去接人</text>
+<text x="1450" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1450" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1000 萬司機每 5 秒回報位置 = 200 萬筆/秒</text>
+<text x="1450" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  同一地點尖峰 10 萬併發叫車</text>
+<text x="1450" y="370" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  媒合 1 分鐘內完成，否則失敗</text>
+<text x="1450" y="389" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  強一致：同一個司機不能被派兩趟</text>
+<text x="1450" y="483" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從乘客手機往後走）</text>
+<text x="1450" y="501" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 → 1 → 2 → 3 → 4    先把估價與建立行程走完</text>
+<text x="1450" y="518" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">5 → 6 → 7            司機位置是另一條獨立的路</text>
+<text x="1450" y="536" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">8 → 9 → 10           有了位置才談媒合與上鎖</text>
+<text x="1450" y="553" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">11 → 12              最後補失敗處理與推播</text>
+<text x="1450" y="633" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1450" y="651" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1450" y="668" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1450" y="686" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0 起：前端元件樹的順序</text>
+<text x="40" y="633" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">API</text>
+<text x="40" y="651" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===</text>
+<text x="40" y="668" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST  /fare              (pickup, destination) -&gt; Fare</text>
+<text x="40" y="686" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST  /rides             (fareId) -&gt; Ride</text>
+<text x="40" y="703" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST  /drivers/location  (lat, lng)</text>
+<text x="40" y="721" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">PATCH /rides/:rideId     accept | deny</text>
+<text x="40" y="819" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="148" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;RideApp&gt;  (F0)</text>
+<rect x="310" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;MapView&gt;  (F1)</text>
+<rect x="310" y="1020" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1062" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;FareCard&gt;  (F2)</text>
+<rect x="310" y="1165" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1207" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;DriverSheet&gt;  (F3)</text>
+<polyline points="255.0,912.0 310.0,912.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,912.0 300.0,916.5 300.0,907.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,949.0 417.5,1020.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1020.0 413.0,1010.0 422.0,1010.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,1094.0 417.5,1165.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1165.0 413.0,1155.0 422.0,1155.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<text x="1450" y="774" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">State split</text>
+<text x="1450" y="793" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===========</text>
+<text x="1450" y="812" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">server state　估價（有效期短，過期要重新估）、行程狀態</text>
+<text x="1450" y="830" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">client state　地圖鏡頭位置、拖曳中的起訖點 pin</text>
+<text x="1450" y="849" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">URL state　　 rideId：從推播點進來要直接到那一趟</text>
+<text x="1450" y="868" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="887" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">行程狀態怎麼進來</text>
+<text x="1450" y="906" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  司機位置每幾秒一次，用 WebSocket 而不是 SSE：</text>
+<text x="1450" y="924" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  乘客端也要往回送（取消、改目的地）</text>
+<text x="1450" y="943" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  斷線時地圖不清空，改顯示「位置更新中」的舊點</text>
+<text x="1450" y="962" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="980" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">不能 optimistic 的地方</text>
+<text x="1450" y="999" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  「叫車中」可以立刻顯示，「已媒合司機」不行</text>
+<text x="1450" y="1018" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  後者是伺服器上鎖的結果，前端猜錯會顯示不存在的司機</text>
+<text x="1450" y="1037" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1056" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="1450" y="1074" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  地圖是純視覺的，司機距離與 ETA 要有文字版本</text>
+<text x="1450" y="1093" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  接送地點確認鍵的觸控目標放大，開車中單手操作</text>
+<text x="1450" y="1112" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1130" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Perf</text>
+<text x="1450" y="1149" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  地圖圖磚與路線分開請求，路線先到就先畫</text>
+<text x="1450" y="1168" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  背景時降低位置更新頻率，回前景補一次完整狀態</text>
+</svg>

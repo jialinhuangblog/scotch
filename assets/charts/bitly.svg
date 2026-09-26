@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1943" height="1302" viewBox="0 0 1943 1302">
+<rect x="0" y="0" width="1943" height="1302" fill="#ffffff"/>
+<text x="40" y="67" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Bitly</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(0) Client</text>
+<rect x="310" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(1) API Gateway</text>
+<rect x="580" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(2) Write Service</text>
+<text x="688" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">發短碼</text>
+<rect x="850" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="958" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(3) Redis 發號機</text>
+<text x="958" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">INCRBY 1000 一次領一批</text>
+<rect x="850" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="958" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(4) Postgres</text>
+<text x="958" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">short_code 當主鍵</text>
+<rect x="310" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#1971c2" stroke-width="2"/>
+<text x="418" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(5) Read Service</text>
+<text x="418" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">回 302，不用 301</text>
+<rect x="310" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#e03131" stroke-width="2"/>
+<text x="418" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(6) Redis cache</text>
+<text x="418" y="492" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">TTL 跟連結過期同步</text>
+<polyline points="255.0,187.0 310.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,187.0 300.0,191.5 300.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,187.0 580.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,187.0 570.0,191.5 570.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="795.0,187.0 850.0,187.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,187.0 840.0,191.5 840.0,182.5" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="687.5,224.0 687.5,332.0 849.5,332.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="849.5,332.0 839.5,336.5 839.5,327.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="417.5,224.0 417.5,295.0" fill="none" stroke="#1971c2" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,295.0 413.0,285.0 422.0,285.0" fill="#1971c2" stroke="#1971c2" stroke-width="1.5"/>
+<polyline points="417.5,369.0 417.5,440.0" fill="none" stroke="#e03131" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,440.0 413.0,430.0 422.0,430.0" fill="#e03131" stroke="#e03131" stroke-width="1.5"/>
+<polyline points="525.0,332.0 850.0,332.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,332.0 840.0,336.5 840.0,327.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<text x="1450" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1450" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1450" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1450" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 丟長網址，拿回短網址</text>
+<text x="1450" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. 可自訂別名、可設過期時間</text>
+<text x="1450" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 點短網址 302 跳回原站</text>
+<text x="1450" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  out of scope：帳號系統、點擊分析</text>
+<text x="1450" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1450" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  總量 10 億條，1 億 DAU</text>
+<text x="1450" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  redirect &lt; 100ms</text>
+<text x="1450" y="370" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  99.99% 可用，一年停機不到一小時</text>
+<text x="1450" y="389" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  讀寫比約 1000:1，兩邊分開擴</text>
+<text x="1450" y="453" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">為什麼用 counter 不用 hash</text>
+<text x="1450" y="471" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  hash + base62 取 8 碼：62^8 夠大，但十億筆之下</text>
+<text x="1450" y="488" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  撞碼會發生，寫入路徑永遠背著重試。</text>
+<text x="1450" y="506" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  counter + base62：10 億只要 6 碼，發出去之前就唯一，</text>
+<text x="1450" y="523" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  沒有撞碼路徑。可預測沒關係，連結本來就公開。</text>
+<text x="1450" y="541" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="558" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">302 不是 301</text>
+<text x="1450" y="576" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  301 瀏覽器會快取，之後的點擊不再經過我們：</text>
+<text x="1450" y="593" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  不能改目的地、不能過期。302 每次都回來，控制權留著。</text>
+<text x="1450" y="673" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從瀏覽器往後走）</text>
+<text x="1450" y="691" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 → 1 → 2 → 3 → 4    先走建立那條：發號決定整題</text>
+<text x="1450" y="708" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">5 → 6                讀那條才是流量所在，cache 吸收 1000:1</text>
+<text x="1450" y="793" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1450" y="811" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1450" y="828" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1450" y="846" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0 起：前端元件樹的順序</text>
+<text x="40" y="633" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">API</text>
+<text x="40" y="651" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===</text>
+<text x="40" y="668" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST /urls     (long_url, alias?, expires_at?) -&gt; short_url</text>
+<text x="40" y="686" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">               別名重複回 409</text>
+<text x="40" y="703" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /{code}   -&gt; 302 Location: long_url</text>
+<text x="40" y="819" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="148" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;ShortenForm&gt;  (F0)</text>
+<rect x="310" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;ResultCard&gt;  (F1)</text>
+<rect x="310" y="1020" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1062" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;LinkList&gt;  (F2)</text>
+<polyline points="255.0,912.0 310.0,912.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,912.0 300.0,916.5 300.0,907.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,949.0 417.5,1020.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1020.0 413.0,1010.0 422.0,1010.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<text x="1450" y="914" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">State split</text>
+<text x="1450" y="933" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===========</text>
+<text x="1450" y="952" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">server state　建過的連結列表</text>
+<text x="1450" y="970" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">client state　表單內容與驗證狀態</text>
+<text x="1450" y="989" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">URL state　　 幾乎沒有：這個產品的網址是商品，不是導覽</text>
+<text x="1450" y="1008" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1027" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">短碼不能 optimistic</text>
+<text x="1450" y="1046" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  號碼是伺服器發的，前端猜不到，跟 Uber 派單同型。</text>
+<text x="1450" y="1064" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  能做的是送出時鎖住按鈕：counter 方案下重複送出</text>
+<text x="1450" y="1083" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  不會拿到同一個碼，是兩個碼對一個網址。</text>
+<text x="1450" y="1102" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1120" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">真正有人看到的頁面</text>
+<text x="1450" y="1139" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  302 沒有畫面，讀端唯一的 UI 是過期／失效頁。</text>
+<text x="1450" y="1158" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  再給不信任的目的地一頁 preview：短碼天生藏住目的地，</text>
+<text x="1450" y="1177" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  先顯示目標網域再跳，是這個產品的信任功能。</text>
+<text x="1450" y="1196" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1214" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="1450" y="1233" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  複製成功要進 aria-live，不然螢幕閱讀器聽到的是沉默</text>
+<text x="1450" y="1252" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  表單錯誤用 aria-describedby 綁在輸入框上</text>
+</svg>

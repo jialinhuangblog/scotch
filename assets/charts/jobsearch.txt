@@ -1,0 +1,347 @@
+JOBSEARCH PORTAL (SEA) — MOCK INTERVIEW SCRIPT
+===============================================
+
+題目給了一整張需求清單，搜尋、六個 9、A/B、三種通知、分析，看起來每一條都要
+一個大元件。算完量之後，流量其實很小。這題考的是把每條需求接到同一條 CDC 串流
+上，還有敢不敢對六個 9 提出質疑。對白英文，場景標題跟導演註解（>）中文。
+
+
+SCENE 0 — Opening
+【現在在做：題目沒講的地方先問，不登入能不能搜、刊登後多快搜得到、職缺有幾筆、六個 9 能不能談】
+------------------------------------------------------------
+INTERVIEWER: Our client wants a job search portal for Southeast Asia.
+Thailand, Vietnam, Singapore, Malaysia, Indonesia to start. Free and premium
+tiers for both job seekers and employers. You have the requirements sheet.
+
+CANDIDATE: A few questions before I draw. First: can a job seeker search
+without logging in?
+
+INTERVIEWER: Yes, search should be open.
+
+CANDIDATE: Then job pages are public content, the same HTML for everyone,
+and I can render them on the server and cache them at the CDN. It also
+means search engines can index every posting, which for a job site is free
+traffic.
+
+Second: when an employer posts a job, how fast must it show up in search?
+
+INTERVIEWER: Within a few seconds.
+
+CANDIDATE: Seconds, not milliseconds. That lets me update the search index
+asynchronously instead of inside the employer's write request.
+
+Third: how many active postings, and do we store resumes?
+
+INTERVIEWER: Hundreds of thousands of postings. Resumes are stored. Employers
+searching resumes is out of scope for now.
+
+CANDIDATE: Last one. The sheet says six nines. Is that a hard number, or is
+it open to discussion with the client?
+
+INTERVIEWER: What makes you ask?
+
+CANDIDATE: I'll show the math in a minute. It changes the deployment more
+than anything else on the sheet.
+
+> 不登入 → SSR 加 CDN；幾秒內 → 非同步建索引；幾十萬筆 → 搜尋 cluster 不用大；六個 9 → 要不要開第二個區域。問完就知道哪幾塊是實線，
+> 哪幾塊只是開放討論的虛線。
+
+
+SCENE 1 — Functional requirements
+【現在在做：把需求清單收成五條，範圍外的當場講出來】
+----------------------------------------------------
+CANDIDATE:
+
+  1. Search jobs by title, skills and description, with filters
+  2. Employers post and edit jobs, seekers apply with a resume
+  3. Notifications by SMS, email and WhatsApp
+  4. A/B test UI changes, for all users or a targeted subset
+  5. Near real-time sales analytics for forecasting
+
+  Out of scope: resume search by employers, languages other than English
+  for now
+
+INTERVIEWER: Where do free and premium differ?
+
+CANDIDATE: For employers, premium postings rank higher and stay up longer.
+For seekers, premium could mean early access to new postings or seeing who
+viewed their profile. Architecturally it's a tier field on the user and a
+boost in ranking, not a separate system. The subscription table matters
+more for requirement 5, because that's the sales data being forecast.
+
+> 付費方案很容易被畫成另一套系統。講成「user 上一個 tier 欄位，排序時加權」，
+> 再順手接到分析那條需求，同一張訂閱表就是業務要預測的資料。
+
+
+SCENE 2 — Non-functional requirements
+【現在在做：把量算出來，然後對六個 9 提出質疑】
+------------------------------------------------
+CANDIDATE: The sheet says 500 thousand daily users, peaking at a million.
+Assume each user makes about 30 requests a day, searches, page views,
+applications. At the peak that's 30 million requests a day, roughly 350 per
+second on average. Traffic isn't flat, so call the peak five times that,
+around 1,700 per second.
+  100 萬人 × 每人 30 次 = 3,000 萬次／天
+  3,000 萬 ÷ 86,400 秒 ≈ 347 次／秒 ≈ 350 次／秒
+  347 × 5（尖峰）≈ 1,736 ≈ 1,700 次／秒
+
+That's small. A few stateless app servers handle it, and most of it never
+reaches them because public pages come out of the CDN. Scaling isn't what
+makes this problem hard.
+
+Now six nines. 99.9999% of a year is about 31 seconds of downtime, total,
+for the whole year. One bad deploy uses that up. A failover that takes two
+minutes uses it up four times over (3.8).
+
+  365 天 × 86,400 秒 = 31,536,000 秒／年
+  100% − 99.9999% = 0.0001%
+  31,536,000 秒 × 0.0001% ≈ 31.5 秒
+  2 分鐘 = 120 秒
+  120 秒 ÷ 31.5 秒 ≈ 3.8 ≈ 4 次
+
+INTERVIEWER: So you can't do it?
+
+CANDIDATE: I can, but it has a price the client should see before signing.
+It means two regions both serving live traffic, so losing one region is not
+an outage. That doubles the infrastructure and adds cross-region data sync.
+I'd design for four nines in one region with multiple availability zones,
+and show six nines as the upgrade path with its cost attached.
+
+  - Search results under one second
+  - New postings searchable within seconds
+  - Analytics must not load the production database
+  - Four nines by default, six nines as a priced option
+
+> 1,700 QPS 那一段要把假設講出口（每人 30 個 request），面試官可以改假設，但不會
+> 說他亂算。六個 9 換成「一年 31 秒」，客戶一聽就懂代價。質疑完把價格攤開，讓客戶
+> 自己選，這一段的分數在這裡。
+
+
+SCENE 3 — The first version, and why search moves out
+【現在在做：v1 只有一條路，然後指出它哪裡會出問題】
+----------------------------------------------------
+CANDIDATE: The simplest version that works: browser, CDN, load balancer,
+app servers, one Postgres. Search runs as Postgres full-text search on the
+same database.
+
+At our traffic, that runs. The problem is what shares the machine. Search
+queries match three text fields and sort by relevance, and they run on the
+same primary that takes every employer's write. A burst of searches slows
+down posting a job, and the two have nothing to do with each other.
+
+So search moves out. Postgres stays the source of truth. A change data
+capture tool, Debezium, reads the Postgres write-ahead log and publishes
+every row change to Kafka. An indexer consumes the job changes and writes
+them into Elasticsearch. A posting is searchable a few seconds after it's
+saved, which matches the requirement.
+
+INTERVIEWER: Why not have the app write to Elasticsearch directly?
+
+CANDIDATE: Then every write goes to two systems, and one of them can fail
+after the other succeeded. Postgres says the job exists, the index says it
+doesn't, and nothing notices. With CDC there's one write. The index is
+derived from the log, and if the indexer crashes, the events are still in
+Kafka, it resumes from its last offset.
+
+> 先畫一版能跑的，再指出它的問題出在「搜尋和刊登搶同一台機器」，不是流量大。
+> 面試官問為什麼不雙寫，因為雙寫的話，Postgres 有這筆職缺、Elasticsearch 卻沒有，而且沒人發現。CDC 只寫一次，
+> 索引是從 log 推出來的。
+
+
+SCENE 4 — Search in detail
+【現在在做：sub-second 怎麼做到，還有雇主剛刊登完要看到自己的職缺】
+------------------------------------------------------------------
+CANDIDATE: Hundreds of thousands of postings is a small index. A few shards,
+a replica each, and a query across title, skills and description comes back
+well under a second. Premium postings get a ranking boost in the query.
+
+For the hottest queries, "software engineer Singapore" hit many times a
+second, results go into Redis for 30 seconds. Most of those requests never
+reach Elasticsearch.
+
+INTERVIEWER: An employer posts a job and immediately checks the listing.
+It's not there. What happened?
+
+CANDIDATE: They read through search, and search is a few seconds behind.
+The fix is to not send that read through search at all. The employer
+dashboard reads their own postings from the Postgres primary, so their new
+job is there the moment they saved it. Job seekers see it a few seconds
+later through search, and nobody notices that delay.
+
+> 「剛寫完馬上讀」只發生在雇主自己身上，所以只讓雇主後台讀 primary，不必把整個
+> 搜尋改成強一致。這跟 Bitly 處理剛建立的短網址是同一個做法。
+
+
+SCENE 5 — Notifications
+【現在在做：三個通道分開，一個供應商出問題不影響另外兩個】
+----------------------------------------------------------
+CANDIDATE: Application received, interview invitation, new matching jobs.
+These are events, and they're already in Kafka, because the application
+row went through CDC. A notification service consumes them, looks up which
+channels the user opted into, and hands each message to a per-channel
+worker: SMS, email, WhatsApp.
+
+INTERVIEWER: Why split the workers?
+
+CANDIDATE: The providers fail independently. If the WhatsApp provider is
+rate limiting us or down, its worker backs off and retries, while email
+keeps sending. One shared worker would let a slow provider hold up every
+channel.
+
+Every notification carries an id, and the worker records what it sent.
+A retry after a timeout checks the id first, so the user doesn't get the
+same SMS three times.
+
+> 通知不需要新的事件來源，投遞本來就寫進 Postgres，CDC 已經把它送進 Kafka。
+> worker 照通道拆開的理由要講成故障情境：WhatsApp 那邊慢，Email 照常寄。
+
+
+SCENE 6 — Analytics without touching production
+【現在在做：「without affecting the systems」落到具體的資料路徑】
+------------------------------------------------------------------
+CANDIDATE: Sales data means subscriptions and payments. The same Kafka
+stream carries those row changes. A second consumer loads them into an
+analytics database, ClickHouse or a warehouse, within seconds to minutes.
+That's near real time for forecasting.
+
+The forecasting queries run there. They scan months of data and they never
+touch Postgres. CDC reads the write-ahead log, which the database writes
+anyway, so the production database doesn't do any extra query work for
+analytics.
+
+INTERVIEWER: Why not a read replica for analytics?
+
+CANDIDATE: It works at first. But analytical queries are long scans, and
+long queries on a replica can conflict with replication, so the replica
+either falls behind or cancels the query. And the replica still has the
+production schema, which is built for writes, not for aggregation. A
+separate store built for scans is the cleaner line.
+
+> 這題要的「不影響線上」，答案就是分析讀的不是 Postgres。replica 那一問要講出
+> 具體的衝突：長查詢讓 replica 延遲或被取消，schema 也不是為了聚合設計的。
+
+
+SCENE 7 — A/B testing
+【現在在做：分組怎麼算，為什麼在 CDN 分組，以及快取命中率因此下降】
+--------------------------------------------------------
+CANDIDATE: A flag service decides the variant. Hash the user id, or an
+anonymous cookie id for logged-out visitors, together with the experiment
+id, mod 100. The same person always lands in the same bucket, with no
+lookup table. "A specific subset" is a targeting rule on top, for example
+country is Thailand and tier is premium.
+
+INTERVIEWER: Where does that decision happen?
+
+CANDIDATE: At the CDN edge, before the page renders. If the browser decides,
+it first paints version A, then swaps to B. The layout jumps, Core Web
+Vitals get worse, and the experiment now measures the jump as much as the
+design.
+
+Deciding at the edge has a cost for caching. The CDN has to cache one copy
+per variant, so the bucket goes into the cache key. Two or three variants
+are fine. Twenty concurrent experiments multiply the copies and the hit
+rate drops, so the number of live experiments should stay small.
+
+Every exposure is logged as an event into the same pipeline, and conversion
+per variant is a query in the analytics store.
+
+> A/B 是前後端交界的題目。後端講分組，前端補上「在瀏覽器分組會先出 A 版再跳 B 版」，
+> 再接到 CDN 快取 key 要多存幾份的代價。
+
+
+SCENE 8 — Availability
+【現在在做：預設四個 9 的做法，還有要做到六個 9 得多加什麼】
+------------------------------------------------------------
+CANDIDATE: Default design: app servers spread across availability zones in
+one region. Postgres primary with a synchronous replica in another zone, so
+a zone failure loses no committed data and fails over. Kafka and
+Elasticsearch are replicated across zones too.
+
+For six nines, a second region, say Singapore and Jakarta, both serving
+live traffic. A global load balancer sends each user to the nearest
+healthy region, and when one region fails, its users move to the other,
+which is already running and already warm.
+
+INTERVIEWER: What's the hard part?
+
+CANDIDATE: Writes in two places. If an employer edits the same posting in
+both regions at once, someone has to win. Job postings have a single
+owner, so the simplest rule is that each employer's writes go to their home
+region, and the other region replicates. Reads are served everywhere. That
+avoids conflicting writes almost entirely, at the cost of slightly slower
+writes for an employer who happens to be far from home.
+
+> 第二個區域是 SCENE 2 講好的升級選項，這裡把它的代價講清楚。雙區域的難處在兩邊
+> 同時寫入，「每個雇主的寫入固定在一個區域」是一個具體可行的規則。
+
+
+SCENE 9 — Frontend lens
+【現在在做：三個頁面、三種 state、SEA 的手機網路】
+--------------------------------------------------
+CANDIDATE: Three page types. The search page and the job detail page are
+public, server rendered and cached at the CDN. The employer dashboard needs
+login and no SEO, so it's client rendered and shipped as a separate bundle.
+A job seeker on a phone never downloads the employer code.
+
+State split. The search query, skills, country and page number live in the
+URL. A search can be shared as a link, and the back button returns to the
+same filters. Search results are server state, held in a query cache like
+react-query, which also collapses duplicate requests and prefetches the next
+page. Whether the filter panel is open is client state and nobody needs it
+after a reload.
+
+The search box waits 300 milliseconds after typing stops before it sends a
+request, and cancels the previous request when a new one starts. Otherwise
+a slow old response can arrive last and overwrite the newer results. While
+new results load, the old ones stay on screen instead of flashing empty.
+
+The job detail page carries schema.org JobPosting structured data, which is
+what gets postings into Google's job search.
+
+INTERVIEWER: Accessibility?
+
+CANDIDATE: The search suggestions follow the ARIA combobox pattern, so arrow
+keys move through them and a screen reader announces the selected one. The
+application form has a real label on every field, and errors are tied to
+their field with aria-describedby. The premium badge on a job card uses text,
+not just color, so a color-blind user can tell it apart.
+
+And localization: English for now, but currency and dates follow the user's
+country, baht in Thailand, dong in Vietnam. Strings are in translation files
+from day one, so adding Thai later is translation work, not a code change.
+
+> 前端這段的決定都接回後端：公開頁面 SSR 是因為 SCENE 0 問到不登入也能搜；
+> 搜尋條件放 URL 是因為可以分享；取消舊 request 是 sub-second 在瀏覽器那一端的
+> 做法。a11y 講具體的元件跟屬性，不要只講「會注意無障礙」。
+
+
+SCENE 10 — Wrapping up
+【現在在做：三個開放討論，各自說清楚什麼條件下才加】
+----------------------------------------------------
+CANDIDATE: Three things I'd bring back to the client.
+
+Data residency. If Indonesia or Vietnam require personal data to stay in the
+country, each country gets its own database for users and resumes, and the
+app routes by the user's country. Job postings are public and can stay in a
+shared search cluster.
+
+Thai and Vietnamese search. English splits words on spaces. Thai has no
+spaces between words and needs a dedicated tokenizer. Vietnamese needs tone
+marks handled, so a search for "viec lam" still finds "việc làm".
+
+Resume search for employers. The same indexer consumes resume changes into a
+second index, with fewer searchable fields than a job posting, no phone
+numbers in the index.
+
+INTERVIEWER: That's time.
+
+
+跟其他題的差別
+================
+
+其他題通常有一個元件是整題的重點，Uber 是派單的鎖，Bitly 是發號。這題沒有：流量
+尖峰約 1,700 QPS，幾台機器就夠。這題考的是把一張長長的需求清單接成一條資料路徑，
+Postgres 寫一次，CDC 送進 Kafka，搜尋、通知、分析各自讀。
+
+六個 9 是整張需求清單裡唯一要跟客戶談的一條。要做到一年只停 31 秒，就要兩個區域同時接流量，
+做不做由客戶決定，面試裡要做的是把價格講清楚。
