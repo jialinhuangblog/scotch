@@ -1,0 +1,1 @@
+import{v as Ot}from"./chunk-8Qsnq8Qv.js";var s=class{constructor(i){this.init=i,this.records=this.init()}static{Ot(this,`ImperativeState`)}reset(){this.records=this.init()}};export{s as t};

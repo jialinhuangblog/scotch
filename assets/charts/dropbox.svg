@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1936" height="1548" viewBox="0 0 1936 1548">
+<rect x="0" y="0" width="1936" height="1548" fill="#ffffff"/>
+<text x="40" y="67" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="28" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Dropbox</text>
+<text x="40" y="129" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#1971c2" text-anchor="start" xml:space="preserve">Backend lens</text>
+<rect x="40" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#1e1e1e" stroke-width="2"/>
+<text x="148" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(0) Client</text>
+<text x="148" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">含桌面 sync agent</text>
+<rect x="310" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="418" y="192" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(1) API Gateway / LB</text>
+<rect x="580" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#e8590c" stroke-width="2"/>
+<text x="688" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(2) File Service</text>
+<text x="688" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">發 presigned URL</text>
+<rect x="850" y="150" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="958" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(3) Metadata DB</text>
+<text x="958" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">DynamoDB，chunk 狀態</text>
+<rect x="310" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#2f9e44" stroke-width="2"/>
+<text x="418" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(4) S3</text>
+<text x="418" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">multipart upload</text>
+<rect x="850" y="295" width="215" height="74" rx="10" fill="#ffffff" stroke="#0c8599" stroke-width="2"/>
+<text x="958" y="328" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(5) CDN</text>
+<text x="958" y="347" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">簽名 URL 下載</text>
+<rect x="40" y="440" width="215" height="74" rx="10" fill="#ffffff" stroke="#0c8599" stroke-width="2"/>
+<text x="148" y="473" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">(6) Sync 通知</text>
+<text x="148" y="492" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">WebSocket 推變更</text>
+<polyline points="255.0,187.0 310.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,187.0 300.0,191.5 300.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="525.0,187.0 580.0,187.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="580.0,187.0 570.0,191.5 570.0,182.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="795.0,187.0 850.0,187.0" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="850.0,187.0 840.0,191.5 840.0,182.5" fill="#2f9e44" stroke="#2f9e44" stroke-width="1.5"/>
+<polyline points="147.5,224.0 147.5,332.0 309.5,332.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="309.5,332.0 299.5,336.5 299.5,327.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="687.5,224.0 687.5,332.0 525.5,332.0" fill="none" stroke="#e8590c" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="525.5,332.0 535.5,327.5 535.5,336.5" fill="#e8590c" stroke="#e8590c" stroke-width="1.5"/>
+<polyline points="417.5,369.0 417.5,414.0 1021.5,414.0 1021.5,369.0" fill="none" stroke="#868e96" stroke-width="2" stroke-linejoin="round" stroke-dasharray="8 6"/>
+<polygon points="1021.5,369.0 1026.0,379.0 1017.0,379.0" fill="#ffffff" stroke="#868e96" stroke-width="1.5"/>
+<polyline points="580.0,187.0 552.0,187.0 552.0,477.0 255.0,477.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="255.0,477.0 265.0,472.5 265.0,481.5" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<polyline points="147.5,440.0 147.5,224.0" fill="none" stroke="#0c8599" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="147.5,224.0 152.0,234.0 143.0,234.0" fill="#0c8599" stroke="#0c8599" stroke-width="1.5"/>
+<text x="1450" y="164" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Requirements</text>
+<text x="1450" y="183" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">============</text>
+<text x="1450" y="202" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">FR</text>
+<text x="1450" y="220" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  1. 上傳、下載檔案</text>
+<text x="1450" y="239" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  2. 分享給別人</text>
+<text x="1450" y="258" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  3. 多裝置自動同步</text>
+<text x="1450" y="277" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  out of scope：線上編輯、預覽</text>
+<text x="1450" y="296" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="314" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">NFR</text>
+<text x="1450" y="333" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  單檔最大 50GB</text>
+<text x="1450" y="352" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  可用性優先，同步 eventual 可接受</text>
+<text x="1450" y="370" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  上傳中斷要能續傳</text>
+<text x="1450" y="453" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">為什麼要切 chunk</text>
+<text x="1450" y="471" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  50GB 直接 POST 過不了 gateway 的 10MB 上限。</text>
+<text x="1450" y="488" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  切成 5-10MB：平行傳，斷線只重傳沒完成的那幾塊。</text>
+<text x="1450" y="506" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  每塊算 fingerprint，續傳先問後端哪些塊傳過了；</text>
+<text x="1450" y="523" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  兩個人傳同一份檔案，指紋一樣，第二份不用真的存。</text>
+<text x="1450" y="541" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="558" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">presigned URL 在做什麼</text>
+<text x="1450" y="576" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  後端用自己的 AWS 憑證簽一個五分鐘有效的網址，</text>
+<text x="1450" y="593" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  客戶端拿著它直接對 S3 傳，流量不經過應用伺服器。</text>
+<text x="1450" y="611" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  代價：網址就是臨時鑰匙，誰拿到誰能用，效期要短。</text>
+<text x="1450" y="628" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="646" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">同步怎麼做</text>
+<text x="1450" y="663" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  本機改動：檔案系統監聽 → 排隊上傳，衝突 last write wins</text>
+<text x="1450" y="681" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  遠端改動：WebSocket 推一下，斷線退回幾分鐘 poll 一次</text>
+<text x="1450" y="698" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  兩條都在，漏掉推播只是慢一點，不會永遠不同步</text>
+<text x="1450" y="823" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">畫的順序（從客戶端往後走）</text>
+<text x="1450" y="841" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">0 → 1 → 2 → 3    先把 metadata 寫進去，拿 presigned URL</text>
+<text x="1450" y="858" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">4                檔案本體直傳 S3，不經過後端</text>
+<text x="1450" y="876" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">5                下載走 CDN，一樣是簽名 URL</text>
+<text x="1450" y="893" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">6                另一台裝置靠推播知道有東西變了</text>
+<text x="1450" y="963" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">實心箭頭：同步呼叫</text>
+<text x="1450" y="981" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">虛線空心：非同步 / 控制面 / 替代路徑</text>
+<text x="1450" y="998" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">框裡的 (n)：白板上畫出來的先後順序</text>
+<text x="1450" y="1016" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="14" fill="#868e96" text-anchor="start" xml:space="preserve">F0 起：前端元件樹的順序</text>
+<text x="40" y="633" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">API</text>
+<text x="40" y="651" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===</text>
+<text x="40" y="668" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST /files/presigned-url          (metadata) -&gt; PresignedUrl</text>
+<text x="40" y="686" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /files/:fileId/presigned-url  -&gt; PresignedUrl</text>
+<text x="40" y="703" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">POST /files/:fileId/share          (users)</text>
+<text x="40" y="721" font-family="Menlo, SF Mono, Noto Sans Mono CJK TC, monospace" font-size="14" fill="#1e1e1e" text-anchor="start" xml:space="preserve">GET  /files/changes?since=         -&gt; ChangeEvent[]</text>
+<text x="40" y="829" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="20" fill="#7048e8" text-anchor="start" xml:space="preserve">Frontend lens (RADIO)</text>
+<rect x="40" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="148" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;DriveApp&gt;  (F0)</text>
+<rect x="310" y="875" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="917" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;FileTable&gt;  (F1)</text>
+<rect x="310" y="1020" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1062" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;UploadTray&gt;  (F2)</text>
+<rect x="310" y="1165" width="215" height="74" rx="10" fill="#ffffff" stroke="#7048e8" stroke-width="2"/>
+<text x="418" y="1207" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="middle">&lt;ShareDialog&gt;  (F3)</text>
+<polyline points="255.0,912.0 310.0,912.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="310.0,912.0 300.0,916.5 300.0,907.5" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,949.0 417.5,1020.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1020.0 413.0,1010.0 422.0,1010.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<polyline points="417.5,1094.0 417.5,1165.0" fill="none" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+<polygon points="417.5,1165.0 413.0,1155.0 422.0,1155.0" fill="#7048e8" stroke="#7048e8" stroke-width="1.5"/>
+<text x="1450" y="1104" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">State split</text>
+<text x="1450" y="1123" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">===========</text>
+<text x="1450" y="1142" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">server state　檔案列表、每個上傳中檔案的 chunk 進度</text>
+<text x="1450" y="1160" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">client state　拖進來還沒開始傳的佇列、選取狀態</text>
+<text x="1450" y="1179" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">URL state　　 資料夾路徑：貼給同事直接開同一層</text>
+<text x="1450" y="1198" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1217" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">上傳進度是前端的主場</text>
+<text x="1450" y="1236" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  一個檔案 = 一排 chunk 的狀態，進度條是算出來的</text>
+<text x="1450" y="1254" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  失敗的 chunk 單獨重試，整檔重來是最差的做法</text>
+<text x="1450" y="1273" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  關掉分頁再回來，先問後端哪些塊傳完了，接著傳</text>
+<text x="1450" y="1292" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1310" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">optimistic</text>
+<text x="1450" y="1329" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  新檔先出現在列表標「上傳中」，失敗標紅讓人重試</text>
+<text x="1450" y="1348" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  刪除先從列表消失，背景送，失敗彈回來附原因</text>
+<text x="1450" y="1367" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1386" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">a11y</text>
+<text x="1450" y="1404" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  進度不能只有顏色條，百分比用文字寫出來</text>
+<text x="1450" y="1423" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  拖放上傳一定要有「選擇檔案」按鈕當等效操作</text>
+<text x="1450" y="1442" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve"></text>
+<text x="1450" y="1460" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">Perf</text>
+<text x="1450" y="1479" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  平行傳 chunk 但限制併發三四條，別把上行塞滿</text>
+<text x="1450" y="1498" font-family="PingFang TC, Hiragino Sans CNS, Noto Sans CJK TC, Helvetica, sans-serif" font-size="15" fill="#1e1e1e" text-anchor="start" xml:space="preserve">  大列表虛擬化，縮圖 lazy load</text>
+</svg>

@@ -1,0 +1,1 @@
+import{jt as ym,mt as p,q as Uv}from"./main-PD7QXSUG.js";var a=class r{lang=p(Uv);transform(e){return this.lang.t(e)}static ɵfac=function(p){return new(p||r)};static ɵpipe=ym({name:`t`,type:r,pure:!1})};export{a as t};
