@@ -1,0 +1,1 @@
+import{v as Ot}from"./chunk-8Qsnq8Qv.js";function t(c,e){c.accDescr&&e.setAccDescription?.(c.accDescr),c.accTitle&&e.setAccTitle?.(c.accTitle),c.title&&e.setDiagramTitle?.(c.title)}Ot(t,`populateCommonDb`);export{t};
